@@ -49,7 +49,7 @@ function getFirstDayOfMonth(year, month) {
 
 function isWeekend(year, month, day) {
   const d = new Date(year, month, day).getDay()
-  return d === 0 || d === 6
+  return d === 0 
 }
 
 function isPast(year, month, day) {
