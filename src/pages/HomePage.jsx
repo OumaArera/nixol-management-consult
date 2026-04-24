@@ -1,96 +1,92 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
-// ─── Scroll-reveal hook ───────────────────────────────────────────────────────
-function useReveal() {
+const gold   = '#C9A84C'
+const navy   = '#0B1D3A'
+const navy800 = '#112549'
+const navy900 = '#0B1D3A'
+const s300   = '#D4DCE8'
+const s400   = '#B0BCCC'
+const s500   = '#8B9BB4'
+const s600 = '#6B7D98'
+
+// ─── Reveal hook ─────────────────────────────────────────────────────────────
+function useReveal(threshold = 0.15) {
   const ref = useRef(null)
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { el.classList.add('revealed'); io.disconnect() }
-    }, { threshold: 0.12 })
-    io.observe(el)
-    return () => io.disconnect()
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        el.style.opacity = '1'
+        el.style.transform = 'translateY(0)'
+        obs.disconnect()
+      }
+    }, { threshold })
+    obs.observe(el)
+    return () => obs.disconnect()
   }, [])
   return ref
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const SERVICES = [
-  { icon: '⚡', title: 'Strategic Consulting', desc: 'Evidence-backed strategy tailored to your industry and growth ambitions.' },
-  { icon: '🏛️', title: 'Business Advisory', desc: 'Expert guidance from startup structuring through to enterprise transformation.' },
-  { icon: '📊', title: 'Financial Management', desc: 'Optimise cash flow and build financial structures that sustain long-term growth.' },
-  { icon: '🎯', title: 'Market Research', desc: 'Actionable intelligence on competitors, trends, and emerging market opportunities.' },
-]
-
-const STATS = [
-  { value: '12+', label: 'Years of Excellence' },
-  { value: '200+', label: 'Clients Served' },
-  { value: '95%', label: 'Client Retention' },
-  { value: '40+', label: 'Industries Covered' },
-]
-
-const VALUES = [
-  { title: 'Integrity First', desc: 'Unwavering ethical standards — every recommendation serves your best interest, not ours.' },
-  { title: 'Deep Expertise', desc: 'Decades of cross-industry knowledge applied with academic rigour to every engagement.' },
-  { title: 'Results Driven', desc: 'We measure success by your outcomes, not hours billed or reports delivered.' },
-]
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-const gold = 'var(--color-gold-500)'
-const navy900 = 'var(--color-navy-900)'
-const navy800 = 'var(--color-navy-800)'
-const navy950 = 'var(--color-navy-950)'
-const silver400 = 'var(--color-silver-400)'
-const silver500 = 'var(--color-silver-500)'
-const white = '#ffffff'
-
-// ─── Components ───────────────────────────────────────────────────────────────
-
-function Badge({ children }) {
+function Reveal({ children, style = {}, delay = 0 }) {
+  const ref = useReveal()
   return (
-    <span style={{
-      display: 'inline-block',
-      padding: '0.35rem 1rem',
-      fontSize: '0.68rem',
-      fontFamily: 'var(--font-body)',
-      fontWeight: 600,
-      letterSpacing: '0.22em',
-      textTransform: 'uppercase',
-      color: gold,
-      border: '1px solid rgba(201,168,76,0.25)',
-      borderRadius: '999px',
-      marginBottom: '1.25rem',
-    }}>{children}</span>
+    <div ref={ref} style={{ opacity: 0, transform: 'translateY(28px)', transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`, ...style }}>
+      {children}
+    </div>
   )
 }
 
+// ─── Data ────────────────────────────────────────────────────────────────────
+
+const STATS = [
+  { value: '5+',   label: 'Service Verticals' },
+  { value: '6',    label: 'Industries Served' },
+  { value: '100%', label: 'Client-Centric Focus' },
+  { value: '24h',  label: 'Response Commitment' },
+]
+
+const SERVICES_PREVIEW = [
+  { icon: '🏛️', title: 'Management & Advisory',         desc: 'Executive decision support, governance, risk & internal controls, strategic planning and transformation.' },
+  { icon: '📊', title: 'Financial Management',           desc: 'Budgeting, forecasting, cash flow optimization, financial modeling and performance dashboards.' },
+  { icon: '🚀', title: 'Business Strategy & Growth',    desc: 'Strategic planning, market analysis, business model development and investment readiness advisory.' },
+  { icon: '📋', title: 'Accounting & Compliance',        desc: 'Bookkeeping, financial statements, audit readiness, ERP optimization and regulatory compliance.' },
+  { icon: '⚙️', title: 'Operations Optimization',       desc: 'Workflow redesign, process efficiency, automation advisory and continuous improvement frameworks.' },
+]
+
+const CLIENTS = [
+  { name: 'Edmonds', logo: '/edmonds.png' },
+  { name: 'Bothell',  logo: '/bothell.png' },
+]
+
+const INDUSTRIES = [
+  'Education & Nonprofits', 'Oil and Gas', 'Professional Services',
+  'Retail & Distribution', 'Manufacturing & Supply Chain', 'Startups & Emerging Enterprises',
+]
+
+const VALUES = [
+  { label: 'Professional Stewardship', desc: 'We protect client interests with confidentiality, respect, and responsibility.' },
+  { label: 'Integrity',                desc: 'We act with honesty, transparency, and ethical discipline in every engagement.' },
+  { label: 'Innovation',               desc: 'We apply insight, data, and modern tools to create smarter solutions.' },
+  { label: 'Accountability',           desc: 'We take ownership of our work, our decisions, and the outcomes we deliver.' },
+]
+
+// ─── Card Components ──────────────────────────────────────────────────────────
+
 function ServiceCard({ icon, title, desc }) {
+  const ref = useReveal(0.1)
   return (
-    <div
-      style={{
-        padding: '2rem',
-        background: navy900,
-        border: '1px solid rgba(26,58,107,0.6)',
-        borderRadius: '14px',
-        transition: 'border-color 0.3s, transform 0.3s, box-shadow 0.3s',
-        cursor: 'default',
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)'
-        e.currentTarget.style.transform = 'translateY(-4px)'
-        e.currentTarget.style.boxShadow = '0 20px 50px rgba(0,0,0,0.4)'
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.borderColor = 'rgba(26,58,107,0.6)'
-        e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = 'none'
-      }}
-    >
-      <div style={{ fontSize: '2rem', marginBottom: '1.25rem' }}>{icon}</div>
-      <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontWeight: 600, color: white, marginBottom: '0.6rem' }}>{title}</h3>
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: silver500, lineHeight: 1.7 }}>{desc}</p>
+    <div ref={ref} style={{ opacity: 0, transform: 'translateY(28px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }}>
+      <div
+        style={{ padding: '2rem', background: '#0B1D3A', border: '1px solid rgba(26,58,107,0.8)', borderRadius: '14px', height: '100%', transition: 'all 0.3s', cursor: 'default' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 40px rgba(0,0,0,0.4)' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,58,107,0.8)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+      >
+        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>{icon}</div>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 600, color: '#fff', marginBottom: '0.75rem' }}>{title}</h3>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: s500, lineHeight: 1.7 }}>{desc}</p>
+      </div>
     </div>
   )
 }
@@ -98,243 +94,253 @@ function ServiceCard({ icon, title, desc }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
-  const statsRef = useReveal()
-  const servicesRef = useReveal()
-  const aboutRef = useReveal()
-  const ctaRef = useReveal()
-
   return (
-    <main style={{ overflow: 'hidden' }}>
+    <main style={{ overflowX: 'hidden' }}>
 
-      {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section style={{
-        position: 'relative',
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '7rem 1.5rem 4rem',
-        background: `linear-gradient(135deg, var(--color-navy-950) 0%, var(--color-navy-900) 50%, #0d2346 100%)`,
-      }}>
-        {/* Grid overlay */}
-        <div style={{
-          position: 'absolute', inset: 0, opacity: 0.035,
-          backgroundImage: `repeating-linear-gradient(90deg, #C9A84C 0, #C9A84C 1px, transparent 0, transparent 72px),
-                            repeating-linear-gradient(180deg, #C9A84C 0, #C9A84C 1px, transparent 0, transparent 72px)`,
-        }} />
-        {/* Glow blobs */}
-        <div style={{ position: 'absolute', top: '15%', left: '20%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: '350px', height: '350px', background: 'radial-gradient(circle, rgba(35,79,141,0.25) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+      {/* ── Hero ────────────────────────────────────────────────────────── */}
+      <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8rem 1.75rem 5rem' }}>
+        {/* Background */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #04101F 0%, #0B1D3A 50%, #112549 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: 'repeating-linear-gradient(90deg,#C9A84C 0,#C9A84C 1px,transparent 1px,transparent 72px),repeating-linear-gradient(0deg,#C9A84C 0,#C9A84C 1px,transparent 1px,transparent 72px)' }} />
+        <div style={{ position: 'absolute', top: '15%', left: '20%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', bottom: '15%', right: '15%', width: '320px', height: '320px', background: 'radial-gradient(circle, rgba(26,58,107,0.3) 0%, transparent 70%)', borderRadius: '50%' }} />
 
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: '860px', margin: '0 auto' }}>
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
           {/* Logo */}
-          <div className="anim-fade-up" style={{ marginBottom: '2.5rem' }}>
-            <img src="/logo.png" alt="Nixol Management & Consult" style={{ height: '130px', width: 'auto', margin: '0 auto', filter: 'drop-shadow(0 8px 40px rgba(0,0,0,0.6))' }} />
+          <div style={{ animation: 'var(--animate-fade-up)', marginBottom: '2rem' }}>
+            <img src="/logo.png" alt="Nixol Management & Consult" style={{ height: '140px', width: 'auto', margin: '0 auto', filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.5))' }} />
           </div>
 
-          <div className="anim-fade-up anim-delay-1" style={{ marginBottom: '1.5rem' }}>
-            <Badge>Management & Consulting</Badge>
+          {/* Badge */}
+          <div style={{ animation: 'var(--animate-fade-up)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }} className="delay-100">
+            <span style={{ padding: '0.4rem 1.25rem', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: gold }}>
+              Strategic Advisory · Financial Management · Business Growth
+            </span>
           </div>
 
-          <h1 className="anim-fade-up anim-delay-2" style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(3rem, 8vw, 5.5rem)',
-            fontWeight: 700,
-            color: white,
-            lineHeight: 1.05,
-            marginBottom: '1.5rem',
-          }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.8rem, 7vw, 5.5rem)', fontWeight: 700, color: '#fff', lineHeight: 1.05, marginBottom: '1.5rem', animation: 'var(--animate-fade-up)' }} className="delay-200">
             Built on{' '}
-            <span style={{ background: 'linear-gradient(135deg, var(--color-gold-400), var(--color-gold-600))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span style={{ background: 'linear-gradient(135deg, #D4B86A, #C9A84C)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Expertise.
             </span>
             <br />
             Driven by{' '}
-            <span style={{ color: 'var(--color-silver-300)' }}>
+            <span style={{ background: 'linear-gradient(135deg, #D4DCE8, #ffffff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Integrity.
             </span>
           </h1>
 
-          <p className="anim-fade-up anim-delay-3" style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '1.1rem',
-            color: silver400,
-            lineHeight: 1.75,
-            maxWidth: '560px',
-            margin: '0 auto 2.5rem',
-          }}>
-            Nixol delivers strategic clarity and operational excellence to businesses across Africa and beyond — transforming challenges into competitive advantage.
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '1.05rem', color: s400, lineHeight: 1.75, maxWidth: '640px', margin: '0 auto 2.5rem', animation: 'var(--animate-fade-up)' }} className="delay-300">
+            Nixol empowers organizations with strategic financial intelligence, operational excellence, and tailored advisory solutions — delivering long-term value across industries.
           </p>
 
-          <div className="anim-fade-up anim-delay-4" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/services" style={{
-              padding: '0.9rem 2.2rem',
-              background: gold,
-              color: navy900,
-              fontFamily: 'var(--font-body)',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              borderRadius: '7px',
-              textDecoration: 'none',
-              transition: 'background 0.2s, transform 0.2s, box-shadow 0.2s',
-            }}
-              onMouseEnter={e => { e.target.style.background = 'var(--color-gold-400)'; e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 12px 32px rgba(201,168,76,0.3)' }}
-              onMouseLeave={e => { e.target.style.background = gold; e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = 'none' }}
-            >
-              Explore Services
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center', animation: 'var(--animate-fade-up)' }} className="delay-400">
+            <Link to="/services" style={{ padding: '0.9rem 2.25rem', background: gold, color: navy, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '7px', transition: 'all 0.25s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#d4b86a'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(201,168,76,0.3)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = gold; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
+              Explore Our Services
             </Link>
-            <Link to="/contact" style={{
-              padding: '0.9rem 2.2rem',
-              background: 'transparent',
-              color: 'var(--color-silver-300)',
-              fontFamily: 'var(--font-body)',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              borderRadius: '7px',
-              border: '1px solid rgba(139,155,180,0.35)',
-              textDecoration: 'none',
-              transition: 'border-color 0.2s, color 0.2s, transform 0.2s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'; e.currentTarget.style.color = white; e.currentTarget.style.transform = 'translateY(-2px)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(139,155,180,0.35)'; e.currentTarget.style.color = 'var(--color-silver-300)'; e.currentTarget.style.transform = 'translateY(0)' }}
-            >
+            <Link to="/booking" style={{ padding: '0.9rem 2.25rem', border: '1px solid rgba(212,188,106,0.35)', color: s300, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '7px', transition: 'all 0.25s', background: 'transparent' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = gold; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(212,188,106,0.35)'; e.currentTarget.style.color = s300; e.currentTarget.style.transform = 'none' }}>
               Book a Consultation
             </Link>
           </div>
         </div>
 
         {/* Scroll cue */}
-        <div style={{ position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', opacity: 0.4, animation: 'fadeUp 1s ease 1.5s forwards', opacity: 0 }}>
-          <div style={{ width: '20px', height: '32px', border: '1.5px solid rgba(139,155,180,0.5)', borderRadius: '10px', display: 'flex', justifyContent: 'center', paddingTop: '6px' }}>
-            <div style={{ width: '3px', height: '7px', background: gold, borderRadius: '2px', animation: 'fadeUp 1.5s ease infinite alternate' }} />
+        <div style={{ position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', opacity: 0.4, animation: 'bounce 2s infinite' }}>
+          <div style={{ width: '18px', height: '30px', border: '1px solid rgba(201,168,76,0.4)', borderRadius: '9px', display: 'flex', justifyContent: 'center', paddingTop: '5px' }}>
+            <div style={{ width: '3px', height: '6px', background: gold, borderRadius: '2px', animation: 'bounce 2s infinite' }} />
           </div>
         </div>
       </section>
 
-      {/* ── STATS ─────────────────────────────────────────────────────────── */}
-      <section style={{ background: navy800, borderTop: '1px solid rgba(201,168,76,0.08)', borderBottom: '1px solid rgba(201,168,76,0.08)', padding: '3rem 1.5rem' }}>
-        <div ref={statsRef} className="reveal" style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '2rem', textAlign: 'center' }}>
-          {STATS.map(({ value, label }) => (
-            <div key={label}>
-              <p style={{ fontFamily: 'var(--font-display)', fontSize: '3rem', fontWeight: 700, color: gold, lineHeight: 1, marginBottom: '0.4rem' }}>{value}</p>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.7rem', fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: silver500 }}>{label}</p>
-            </div>
+      {/* ── Stats ───────────────────────────────────────────────────────── */}
+      <section style={{ background: '#112549', borderTop: '1px solid rgba(201,168,76,0.1)', borderBottom: '1px solid rgba(201,168,76,0.1)', padding: '3rem 1.75rem' }}>
+        <Reveal>
+          <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', textAlign: 'center' }}>
+            {STATS.map(({ value, label }) => (
+              <div key={label}>
+                <p style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 700, color: gold, margin: '0 0 0.25rem' }}>{value}</p>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: s500, margin: 0 }}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ── Welcome note ────────────────────────────────────────────────── */}
+      <section style={{ padding: '6rem 1.75rem', background: 'var(--color-navy-950)' }}>
+        <Reveal style={{ maxWidth: '820px', margin: '0 auto', textAlign: 'center' }}>
+          <span style={{ display: 'inline-block', padding: '0.35rem 1.1rem', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: gold, marginBottom: '1.5rem' }}>
+            Welcome to Nixol
+          </span>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,4vw,3.2rem)', fontWeight: 600, color: '#fff', lineHeight: 1.2, marginBottom: '1.5rem' }}>
+            Your Strategic Partner for Clarity, Efficiency, and Growth
+          </h2>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: s400, lineHeight: 1.8, marginBottom: '1.25rem' }}>
+            Welcome to Nixol Management & Consult — a firm built on the conviction that every organization, regardless of size or sector, deserves access to world-class advisory and financial expertise.
+          </p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: s500, lineHeight: 1.8, marginBottom: '2rem' }}>
+            We work alongside executives, boards, and leadership teams to bring financial clarity, operational discipline, and strategic direction to the decisions that matter most. Whether you are navigating growth, managing complexity, or preparing for your next milestone — we are here as a trusted partner, not just a consultant.
+          </p>
+          <blockquote style={{ margin: '0', padding: '1.5rem 2rem', background: 'rgba(201,168,76,0.05)', borderLeft: `3px solid ${gold}`, borderRadius: '0 10px 10px 0', textAlign: 'left' }}>
+            <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', fontStyle: 'italic', color: gold, margin: '0 0 0.5rem', lineHeight: 1.4 }}>
+              "To empower organizations with strategic financial intelligence, operational excellence, and tailored advisory solutions that drive long-term value creation."
+            </p>
+            <cite style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: s500, fontStyle: 'normal', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              — Our Mission
+            </cite>
+          </blockquote>
+        </Reveal>
+      </section>
+
+      {/* ── Services ────────────────────────────────────────────────────── */}
+      <section style={{ padding: '5rem 1.75rem', background: '#04101F' }}>
+        <Reveal style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+            <span style={{ display: 'inline-block', padding: '0.35rem 1.1rem', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: gold, marginBottom: '1rem' }}>
+              What We Do
+            </span>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 600, color: '#fff', marginBottom: '0.75rem' }}>Core Services</h2>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: s500, maxWidth: '480px', margin: '0 auto', lineHeight: 1.7 }}>
+              Comprehensive solutions designed to improve financial clarity, streamline operations, and accelerate growth.
+            </p>
+          </div>
+        </Reveal>
+
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+          {SERVICES_PREVIEW.map((s, i) => (
+            <ServiceCard key={s.title} {...s} />
           ))}
         </div>
+
+        <Reveal style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+          <Link to="/services" style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: gold, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', transition: 'gap 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.gap = '0.85rem'}
+            onMouseLeave={e => e.currentTarget.style.gap = '0.5rem'}>
+            View All Services →
+          </Link>
+        </Reveal>
       </section>
 
-      {/* ── SERVICES ──────────────────────────────────────────────────────── */}
-      <section style={{ padding: '6rem 1.5rem', background: navy950 }}>
-        <div ref={servicesRef} className="reveal" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <Badge>What We Do</Badge>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 700, color: white, marginBottom: '0.75rem' }}>Core Services</h2>
-            <p style={{ fontFamily: 'var(--font-body)', color: silver500, maxWidth: '480px', margin: '0 auto', lineHeight: 1.7 }}>
-              Comprehensive consulting solutions engineered around your business reality.
-            </p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
-            {SERVICES.map(s => <ServiceCard key={s.title} {...s} />)}
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <Link to="/services" style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-              fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 600,
-              letterSpacing: '0.14em', textTransform: 'uppercase',
-              color: gold, textDecoration: 'none', transition: 'gap 0.2s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.gap = '0.75rem'}
-              onMouseLeave={e => e.currentTarget.style.gap = '0.5rem'}
-            >
-              View All Services <span>→</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── ABOUT STRIP ───────────────────────────────────────────────────── */}
-      <section style={{ padding: '6rem 1.5rem', background: navy900 }}>
-        <div ref={aboutRef} className="reveal" style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '4rem', alignItems: 'center' }}>
-          {/* Text */}
-          <div>
-            <Badge>Who We Are</Badge>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 700, color: white, lineHeight: 1.15, marginBottom: '1.25rem' }}>
-              A Partner Built for <em style={{ color: gold, fontStyle: 'italic' }}>Your</em> Growth
+      {/* ── Values ──────────────────────────────────────────────────────── */}
+      <section style={{ padding: '5rem 1.75rem', background: '#0B1D3A' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+          <Reveal>
+            <span style={{ display: 'inline-block', padding: '0.35rem 1.1rem', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: gold, marginBottom: '1.25rem' }}>
+              Our Values
+            </span>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,3.5vw,2.8rem)', fontWeight: 600, color: '#fff', lineHeight: 1.2, marginBottom: '1.25rem' }}>
+              Principles That Guide Every Engagement
             </h2>
-            <p style={{ fontFamily: 'var(--font-body)', color: silver400, lineHeight: 1.8, marginBottom: '1rem', fontSize: '0.95rem' }}>
-              Nixol was founded on a singular belief: businesses deserve advisors as invested in their success as they are. We combine deep sector expertise with a hands-on, integrity-first approach.
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: s400, lineHeight: 1.8, marginBottom: '2rem' }}>
+              Our values are not statements on a wall — they are the operating system behind every recommendation, report, and relationship we build.
             </p>
-            <p style={{ fontFamily: 'var(--font-body)', color: silver500, lineHeight: 1.8, marginBottom: '2rem', fontSize: '0.9rem' }}>
-              From early-stage structuring to enterprise transformation, our consultants become extensions of your leadership team.
-            </p>
-            <Link to="/about" style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-              padding: '0.8rem 1.8rem',
-              border: '1px solid rgba(201,168,76,0.45)',
-              color: gold,
-              fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600,
-              letterSpacing: '0.14em', textTransform: 'uppercase',
-              borderRadius: '6px', textDecoration: 'none', transition: 'all 0.25s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = gold; e.currentTarget.style.color = navy900; e.currentTarget.style.transform = 'translateY(-2px)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = gold; e.currentTarget.style.transform = 'translateY(0)' }}
-            >
-              Our Story →
+            <Link to="/about" style={{ padding: '0.75rem 1.75rem', border: `1px solid rgba(201,168,76,0.4)`, color: gold, fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '6px', transition: 'all 0.25s', display: 'inline-block' }}
+              onMouseEnter={e => { e.currentTarget.style.background = gold; e.currentTarget.style.color = navy }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = gold }}>
+              Our Story
             </Link>
-          </div>
-
-          {/* Values */}
+          </Reveal>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {VALUES.map(({ title, desc }) => (
-              <div key={title} style={{
-                display: 'flex', gap: '1.25rem', padding: '1.5rem 1.75rem',
-                background: navy800, border: '1px solid rgba(26,58,107,0.7)',
-                borderRadius: '12px', transition: 'border-color 0.3s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(201,168,76,0.2)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(26,58,107,0.7)'}
-              >
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: gold, marginTop: '6px', flexShrink: 0 }} />
-                <div>
-                  <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: white, marginBottom: '0.3rem' }}>{title}</h4>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: silver500, lineHeight: 1.65 }}>{desc}</p>
+            {VALUES.map((v, i) => (
+              <Reveal key={v.label} delay={i * 80}>
+                <div style={{ display: 'flex', gap: '1.25rem', padding: '1.25rem 1.5rem', background: '#04101F', border: '1px solid rgba(26,58,107,0.7)', borderRadius: '12px', transition: 'border-color 0.3s, transform 0.3s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.25)'; e.currentTarget.style.transform = 'translateX(4px)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,58,107,0.7)'; e.currentTarget.style.transform = 'none' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: gold, flexShrink: 0, marginTop: '5px' }} />
+                  <div>
+                    <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 600, color: '#fff', marginBottom: '0.3rem' }}>{v.label}</h4>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', color: s500, lineHeight: 1.6, margin: 0 }}>{v.desc}</p>
+                  </div>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CTA ───────────────────────────────────────────────────────────── */}
-      <section style={{ padding: '6rem 1.5rem', position: 'relative', overflow: 'hidden', background: navy950 }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 50%, rgba(201,168,76,0.07) 0%, transparent 55%), radial-gradient(ellipse at 70% 50%, rgba(35,79,141,0.2) 0%, transparent 55%)' }} />
-        <div ref={ctaRef} className="reveal" style={{ position: 'relative', zIndex: 1, maxWidth: '680px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 700, color: white, marginBottom: '1rem' }}>
-            Ready to Transform Your Business?
-          </h2>
-          <p style={{ fontFamily: 'var(--font-body)', color: silver400, fontSize: '1rem', lineHeight: 1.75, marginBottom: '2.5rem' }}>
-            Let's talk about where you are, where you want to be, and how we get you there.
+      {/* ── Industries ───────────────────────────────────────────────────── */}
+      <section style={{ padding: '4rem 1.75rem', background: 'var(--color-navy-950)', borderTop: '1px solid rgba(26,58,107,0.5)' }}>
+        <Reveal style={{ maxWidth: '1280px', margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: s500, marginBottom: '1.75rem' }}>
+            Industries We Serve
           </p>
-          <Link to="/contact" style={{
-            display: 'inline-block',
-            padding: '1rem 2.8rem',
-            background: gold,
-            color: navy900,
-            fontFamily: 'var(--font-body)', fontSize: '0.8rem', fontWeight: 700,
-            letterSpacing: '0.14em', textTransform: 'uppercase',
-            borderRadius: '7px', textDecoration: 'none', transition: 'all 0.25s',
-          }}
-            onMouseEnter={e => { e.target.style.background = 'var(--color-gold-400)'; e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = '0 16px 40px rgba(201,168,76,0.28)' }}
-            onMouseLeave={e => { e.target.style.background = gold; e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = 'none' }}
-          >
-            Schedule a Consultation
-          </Link>
-        </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
+            {INDUSTRIES.map(ind => (
+              <span key={ind} style={{ padding: '0.5rem 1.1rem', background: '#112549', border: '1px solid rgba(26,58,107,0.8)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: s400, transition: 'all 0.2s', cursor: 'default' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)'; e.currentTarget.style.color = gold }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,58,107,0.8)'; e.currentTarget.style.color = s400 }}>
+                {ind}
+              </span>
+            ))}
+          </div>
+        </Reveal>
       </section>
+
+      {/* ── Clients ─────────────────────────────────────────────────────── */}
+      <section style={{ padding: '5rem 1.75rem', background: '#0B1D3A' }}>
+        <Reveal style={{ maxWidth: '1280px', margin: '0 auto', textAlign: 'center' }}>
+          <span style={{ display: 'inline-block', padding: '0.35rem 1.1rem', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: gold, marginBottom: '1rem' }}>
+            Trusted By
+          </span>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 600, color: '#fff', marginBottom: '0.75rem' }}>
+            Organizations That Trust Nixol
+          </h2>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: s500, maxWidth: '500px', margin: '0 auto 3rem', lineHeight: 1.7 }}>
+            We are proud to work alongside organizations committed to operational excellence and long-term growth.
+          </p>
+
+          {/* Client logos */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'center', alignItems: 'center', marginBottom: '3rem' }}>
+            {CLIENTS.map(({ name, logo }) => (
+              <div key={name} style={{ padding: '1.5rem 2.5rem', background: '#04101F', border: '1px solid rgba(26,58,107,0.7)', borderRadius: '14px', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '180px', minHeight: '100px' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.35)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,58,107,0.7)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
+                <img src={logo} alt={name} style={{ maxHeight: '60px', maxWidth: '140px', width: 'auto', objectFit: 'contain', filter: 'brightness(0.9) grayscale(0.2)' }}
+                  onError={e => {
+                    e.target.style.display = 'none'
+                    e.target.parentElement.innerHTML = `<span style="font-family:var(--font-display);font-size:1.4rem;font-weight:600;color:#D4DCE8;letter-spacing:0.05em">${name}</span>`
+                  }} />
+              </div>
+            ))}
+          </div>
+
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: s600, fontStyle: 'italic' }}>
+            Join the growing list of organizations partnering with Nixol for strategic clarity and measurable results.
+          </p>
+        </Reveal>
+      </section>
+
+      {/* ── CTA ─────────────────────────────────────────────────────────── */}
+      <section style={{ position: 'relative', padding: '6rem 1.75rem', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0B1D3A, #112549, #0B1D3A)' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 25% 50%, rgba(201,168,76,0.08) 0%, transparent 55%), radial-gradient(circle at 75% 50%, rgba(26,58,107,0.3) 0%, transparent 55%)' }} />
+        <Reveal style={{ position: 'relative', zIndex: 10, maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,4vw,3rem)', fontWeight: 600, color: '#fff', marginBottom: '1rem', lineHeight: 1.2 }}>
+            Ready to Operate Smarter and Grow Stronger?
+          </h2>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.95rem', color: s400, lineHeight: 1.75, marginBottom: '2.5rem' }}>
+            Every engagement starts with a conversation. Let's discuss where you are, where you want to be, and how Nixol can help you get there.
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
+            <Link to="/booking" style={{ padding: '1rem 2.5rem', background: gold, color: navy, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '7px', transition: 'all 0.25s', display: 'inline-block' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#d4b86a'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(201,168,76,0.3)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = gold; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
+              Schedule a Consultation
+            </Link>
+            <Link to="/contact" style={{ padding: '1rem 2.5rem', border: '1px solid rgba(201,168,76,0.3)', color: s300, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '7px', transition: 'all 0.25s', background: 'transparent', display: 'inline-block' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = gold; e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)'; e.currentTarget.style.color = s300 }}>
+              Contact Us
+            </Link>
+          </div>
+        </Reveal>
+      </section>
+
+      <style>{`@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }`}</style>
     </main>
   )
 }
