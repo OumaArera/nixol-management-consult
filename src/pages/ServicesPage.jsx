@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
-const gold = '#C9A84C'
-const s400  = '#B0BCCC'
-const s500  = '#8B9BB4'
+const gold  = '#C9A84C'
+const navy  = '#0d2144'
+const t700  = '#2d4a7a'
+const t500  = '#4a6fa5'
+const t400  = '#7a9bc4'
 
 function useReveal() {
   const ref = useRef(null)
@@ -83,44 +85,67 @@ const SERVICES = [
       { sub: 'Performance Measurement & Continuous Improvement', bullets: ['KPI development and operational dashboards', 'Performance tracking and reporting', 'Continuous improvement frameworks (Lean, Kaizen, Six Sigma)', 'Ongoing advisory for operational excellence'] },
     ],
   },
+  {
+    icon: '🏥',
+    title: 'Healthcare Consulting',
+    tagline: 'Specialist Advisory for Healthcare Facilities and Medical Organizations',
+    overview: 'In partnership with healthcare specialist David, Nixol delivers focused consulting services for healthcare facilities, clinics, and medical organizations — combining financial expertise with deep sector knowledge to improve performance, compliance, and patient-centred operations.',
+    items: [
+      { sub: 'Healthcare Financial Management', bullets: ['Revenue cycle optimization', 'Healthcare budgeting and forecasting', 'Cost reduction and profitability analysis', 'Grant and funding management for health facilities'] },
+      { sub: 'Regulatory & Compliance Advisory', bullets: ['Healthcare regulatory compliance frameworks', 'Policy and procedure development for clinical settings', 'Audit readiness for healthcare organizations', 'Risk management and internal controls'] },
+      { sub: 'Operational Efficiency', bullets: ['Clinical workflow assessment and redesign', 'Resource utilization and capacity planning', 'Staff productivity and performance frameworks', 'Supply chain and procurement optimization'] },
+      { sub: 'Strategic Growth & Planning', bullets: ['Healthcare facility expansion strategy', 'Partnership and referral network development', 'Market entry and feasibility assessments', 'Investment readiness for healthcare ventures'] },
+      { sub: 'Technology & Systems', bullets: ['Health information system (HIS) advisory', 'ERP and billing system optimization', 'Digital health readiness assessment', 'Data analytics for clinical and operational decision-making'] },
+    ],
+  },
 ]
 
 function ServicePanel({ service, idx }) {
   const [open, setOpen] = useState(false)
   const ref = useReveal()
+  const isHealthcare = service.icon === '🏥'
+
   return (
-    <div ref={ref} style={{ opacity: 0, transform: 'translateY(28px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }}>
-      <div style={{ background: '#0B1D3A', border: `1px solid ${open ? 'rgba(201,168,76,0.35)' : 'rgba(26,58,107,0.7)'}`, borderRadius: '14px', overflow: 'hidden', transition: 'border-color 0.3s' }}>
-        {/* Header */}
-        <button
-          onClick={() => setOpen(o => !o)}
-          style={{ width: '100%', padding: '1.75rem 2rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
-        >
-          <span style={{ fontSize: '2rem', flexShrink: 0, marginTop: '2px' }}>{service.icon}</span>
+    <div ref={ref} style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }} >
+      <div style={{
+        background: '#ffffff',
+        border: `1px solid ${open ? 'rgba(201,168,76,0.5)' : 'rgba(13,33,68,0.1)'}`,
+        borderRadius: '14px', overflow: 'hidden', transition: 'border-color 0.3s',
+        boxShadow: open ? '0 8px 32px rgba(13,33,68,0.1)' : '0 2px 10px rgba(13,33,68,0.05)',
+      }}>
+        <button onClick={() => setOpen(o => !o)}
+          style={{ width: '100%', padding: '1.6rem 2rem', display: 'flex', gap: '1.25rem', alignItems: 'flex-start', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+          <span style={{ fontSize: '1.8rem', flexShrink: 0, marginTop: '2px' }}>{service.icon}</span>
           <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: gold, margin: '0 0 0.3rem' }}>
-              Service {String(idx + 1).padStart(2, '0')}
-            </p>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 600, color: '#fff', margin: '0 0 0.4rem' }}>{service.title}</h3>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: s500, margin: 0, lineHeight: 1.5 }}>{service.tagline}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.58rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: gold, margin: 0 }}>
+                Service {String(idx + 1).padStart(2, '0')}
+              </p>
+              {isHealthcare && (
+                <span style={{ padding: '0.15rem 0.6rem', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.55rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: gold }}>
+                  New — In Partnership
+                </span>
+              )}
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: 600, color: navy, margin: '0 0 0.35rem' }}>{service.title}</h3>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: t500, margin: 0, lineHeight: 1.5 }}>{service.tagline}</p>
           </div>
-          <span style={{ color: gold, fontSize: '1.1rem', flexShrink: 0, marginTop: '4px', transition: 'transform 0.3s', transform: open ? 'rotate(45deg)' : 'rotate(0)' }}>+</span>
+          <span style={{ color: gold, fontSize: '1.2rem', flexShrink: 0, marginTop: '4px', transition: 'transform 0.3s', transform: open ? 'rotate(45deg)' : 'rotate(0)', fontWeight: 300 }}>+</span>
         </button>
 
-        {/* Expandable body */}
-        <div style={{ maxHeight: open ? '1200px' : '0', overflow: 'hidden', transition: 'max-height 0.5s ease' }}>
-          <div style={{ padding: '0 2rem 2rem', borderTop: '1px solid rgba(26,58,107,0.5)' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.87rem', color: s400, lineHeight: 1.8, margin: '1.5rem 0 1.75rem' }}>
+        <div style={{ maxHeight: open ? '1400px' : '0', overflow: 'hidden', transition: 'max-height 0.5s ease' }}>
+          <div style={{ padding: '0 2rem 2rem', borderTop: '1px solid rgba(13,33,68,0.08)' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.87rem', color: t700, lineHeight: 1.8, margin: '1.5rem 0 1.75rem' }}>
               {service.overview}
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
               {service.items.map(({ sub, bullets }) => (
-                <div key={sub} style={{ padding: '1.25rem', background: '#04101F', border: '1px solid rgba(26,58,107,0.5)', borderRadius: '10px' }}>
-                  <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: '0.75rem' }}>{sub}</h4>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                <div key={sub} style={{ padding: '1.25rem', background: '#f0f5ff', border: '1px solid rgba(13,33,68,0.08)', borderRadius: '10px' }}>
+                  <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 600, color: navy, marginBottom: '0.75rem' }}>{sub}</h4>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                     {bullets.map(b => (
-                      <li key={b} style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start', fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: s500, lineHeight: 1.5 }}>
-                        <span style={{ color: gold, flexShrink: 0, marginTop: '2px' }}>›</span>
+                      <li key={b} style={{ display: 'flex', gap: '0.55rem', alignItems: 'flex-start', fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: t500, lineHeight: 1.5 }}>
+                        <span style={{ color: gold, flexShrink: 0, marginTop: '2px', fontWeight: 700 }}>›</span>
                         {b}
                       </li>
                     ))}
@@ -137,37 +162,36 @@ function ServicePanel({ service, idx }) {
 
 export default function ServicesPage() {
   return (
-    <main style={{ paddingTop: '6rem', minHeight: '100vh', background: '#04101F' }}>
+    <main style={{ paddingTop: '4rem', minHeight: '100vh', background: '#f8faff' }}>
       {/* Header */}
-      <section style={{ position: 'relative', padding: '4rem 1.75rem 3rem', textAlign: 'center', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0B1D3A, #04101F)' }} />
-        <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: '500px', height: '300px', background: 'radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 70%)' }} />
+      <section style={{ position: 'relative', padding: '4rem 1.75rem 3rem', textAlign: 'center', overflow: 'hidden', background: '#0d2144' }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 50% 60%, rgba(201,168,76,0.08) 0%, transparent 65%)' }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '680px', margin: '0 auto' }}>
-          <span style={{ display: 'inline-block', padding: '0.35rem 1.1rem', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: gold, marginBottom: '1.25rem' }}>
+          <span style={{ display: 'inline-block', padding: '0.35rem 1.1rem', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: gold, marginBottom: '1.25rem', background: 'rgba(201,168,76,0.06)' }}>
             Our Expertise
           </span>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem,5vw,3.8rem)', fontWeight: 700, color: '#fff', marginBottom: '1rem', lineHeight: 1.1 }}>
             Services Designed for Impact
           </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.95rem', color: s400, lineHeight: 1.75 }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.95rem', color: '#B0BCCC', lineHeight: 1.75 }}>
             Every engagement is bespoke — shaped by your sector, your ambitions, and the specific challenge on the table. Click any service to explore the full scope.
           </p>
         </div>
       </section>
 
       {/* Accordion */}
-      <section style={{ padding: '2rem 1.75rem 5rem', maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <section style={{ padding: '2.5rem 1.75rem 5rem', maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {SERVICES.map((s, i) => <ServicePanel key={s.title} service={s} idx={i} />)}
       </section>
 
       {/* CTA */}
-      <section style={{ padding: '4rem 1.75rem', textAlign: 'center', borderTop: '1px solid rgba(26,58,107,0.5)' }}>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.95rem', color: s400, marginBottom: '1.5rem', lineHeight: 1.7 }}>
+      <section style={{ padding: '4rem 1.75rem', textAlign: 'center', background: '#f0f5ff', borderTop: '1px solid rgba(13,33,68,0.08)' }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.95rem', color: t700, marginBottom: '1.5rem', lineHeight: 1.7 }}>
           Don't see exactly what you need? Every engagement can be tailored to your specific situation.
         </p>
-        <Link to="/booking" style={{ display: 'inline-block', padding: '0.9rem 2.25rem', background: gold, color: '#0B1D3A', fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '7px', transition: 'all 0.25s' }}
-          onMouseEnter={e => { e.currentTarget.style.background = '#d4b86a'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = gold; e.currentTarget.style.transform = 'none' }}>
+        <Link to="/booking" style={{ display: 'inline-block', padding: '0.9rem 2.25rem', background: navy, color: '#fff', fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '7px', transition: 'all 0.25s' }}
+          onMouseEnter={e => { e.currentTarget.style.background = gold; e.currentTarget.style.color = navy; e.currentTarget.style.transform = 'translateY(-2px)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = navy; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'none' }}>
           Schedule a Consultation
         </Link>
       </section>
