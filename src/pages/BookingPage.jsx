@@ -1,34 +1,28 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
-// ── EmailJS setup ─────────────────────────────────────────────────────────────
-const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID'
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID'
-const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY'
-const COMPANY_EMAIL       = 'info@nixolmc.com'
-
-// ── Colour tokens ─────────────────────────────────────────────────────────────
-const gold  = '#C9A84C'
-const navy  = '#0d2144'
-const navy2 = '#1a3a6b'
-const white = '#ffffff'
-const t900  = '#0d2144'
-const t700  = '#2d4a7a'
-const t500  = '#4a6fa5'
-const t400  = '#7a9bc4'
-const d300  = '#D4DCE8'
-const d400  = '#B0BCCC'
-const d500  = '#8B9BB4'
-
-function useMobile() {
-  const [mobile, setMobile] = useState(window.innerWidth < 768)
+// ── Reveal hook (matches ContactPage) ────────────────────────────────────────
+function useReveal(threshold = 0.12) {
+  const ref = useRef(null)
   useEffect(() => {
-    const fn = () => setMobile(window.innerWidth < 768)
-    window.addEventListener('resize', fn)
-    return () => window.removeEventListener('resize', fn)
+    const el = ref.current; if (!el) return
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { el.classList.add('revealed'); obs.disconnect() }
+    }, { threshold })
+    obs.observe(el); return () => obs.disconnect()
   }, [])
-  return mobile
+  return ref
 }
 
+function Reveal({ children, delay = 0 }) {
+  const ref = useReveal()
+  return (
+    <div ref={ref} className="reveal-block" style={{ '--delay': `${delay}ms` }}>
+      {children}
+    </div>
+  )
+}
+
+// ── Data ─────────────────────────────────────────────────────────────────────
 const SERVICES = [
   'Management & Advisory',
   'Financial Management & Advisory',
@@ -49,61 +43,65 @@ const TIME_SLOTS = [
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
+// ── EmailJS setup ─────────────────────────────────────────────────────────────
+const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID'
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID'
+const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY'
+const COMPANY_EMAIL       = 'info@nixolmc.com'
+
+// ── Calendar helpers ──────────────────────────────────────────────────────────
 function getDaysInMonth(year, month) { return new Date(year, month + 1, 0).getDate() }
 function getFirstDayOfMonth(year, month) { return new Date(year, month, 1).getDay() }
-function isWeekend(year, month, day) { const d = new Date(year, month, day).getDay(); return d === 0 || d === 6 }
-function isPast(year, month, day) {
+function isDisabled(year, month, day) {
   const today = new Date(); today.setHours(0, 0, 0, 0)
-  return new Date(year, month, day) < today
+  const dt = new Date(year, month, day)
+  return dt < today || dt.getDay() === 0 || dt.getDay() === 6
 }
 
-// ── Calendar (keeps dark theme — works great as a widget on light bg) ─────────
+// ── Calendar Component ────────────────────────────────────────────────────────
 function Calendar({ selected, onSelect }) {
   const today = new Date()
   const [view, setView] = useState({ year: today.getFullYear(), month: today.getMonth() })
 
-  const prev = () => setView(v => { const d = new Date(v.year, v.month - 1, 1); return { year: d.getFullYear(), month: d.getMonth() } })
-  const next = () => setView(v => { const d = new Date(v.year, v.month + 1, 1); return { year: d.getFullYear(), month: d.getMonth() } })
+  const prev = () => setView(v => {
+    const d = new Date(v.year, v.month - 1, 1)
+    return { year: d.getFullYear(), month: d.getMonth() }
+  })
+  const next = () => setView(v => {
+    const d = new Date(v.year, v.month + 1, 1)
+    return { year: d.getFullYear(), month: d.getMonth() }
+  })
 
-  const cells = Array(getFirstDayOfMonth(view.year, view.month)).fill(null)
-    .concat(Array.from({ length: getDaysInMonth(view.year, view.month) }, (_, i) => i + 1))
-
+  const blanks = Array(getFirstDayOfMonth(view.year, view.month)).fill(null)
+  const cells  = [...blanks, ...Array.from({ length: getDaysInMonth(view.year, view.month) }, (_, i) => i + 1)]
   const selKey = selected ? `${selected.year}-${selected.month}-${selected.day}` : null
 
   return (
-    <div style={{ background: navy, border: '1px solid rgba(201,168,76,0.2)', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(13,33,68,0.15)' }}>
+    <div className="bk-cal">
       {/* Month nav */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <button onClick={prev} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px', color: d400, cursor: 'pointer', padding: '0.3rem 0.65rem', fontSize: '0.85rem', transition: 'all 0.2s' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = gold; e.currentTarget.style.color = gold }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = d400 }}>‹</button>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: white }}>
-          {MONTHS[view.month]} {view.year}
-        </span>
-        <button onClick={next} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px', color: d400, cursor: 'pointer', padding: '0.3rem 0.65rem', fontSize: '0.85rem', transition: 'all 0.2s' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = gold; e.currentTarget.style.color = gold }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = d400 }}>›</button>
+      <div className="bk-cal-nav">
+        <button className="bk-cal-btn" onClick={prev}>‹</button>
+        <span className="bk-cal-month">{MONTHS[view.month]} {view.year}</span>
+        <button className="bk-cal-btn" onClick={next}>›</button>
       </div>
-
-      {/* Day labels */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', padding: '0.75rem 0.75rem 0' }}>
-        {DAYS.map(d => (
-          <div key={d} style={{ textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '0.58rem', fontWeight: 600, letterSpacing: '0.1em', color: d500, paddingBottom: '0.5rem' }}>{d}</div>
-        ))}
+      {/* Day headers */}
+      <div className="bk-cal-hdr">
+        {DAYS.map(d => <div key={d} className="bk-cal-daylbl">{d}</div>)}
       </div>
-
       {/* Day cells */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', padding: '0 0.75rem 0.75rem', gap: '3px' }}>
+      <div className="bk-cal-grid">
         {cells.map((day, i) => {
           if (!day) return <div key={`e-${i}`} />
-          const disabled = isPast(view.year, view.month, day) || isWeekend(view.year, view.month, day)
+          const dis = isDisabled(view.year, view.month, day)
           const key = `${view.year}-${view.month}-${day}`
           const isSel = selKey === key
           return (
-            <button key={key} disabled={disabled} onClick={() => onSelect({ year: view.year, month: view.month, day })}
-              style={{ padding: '0.5rem 0', borderRadius: '7px', border: 'none', cursor: disabled ? 'not-allowed' : 'pointer', background: isSel ? gold : disabled ? 'transparent' : 'rgba(255,255,255,0.06)', color: isSel ? navy : disabled ? 'rgba(255,255,255,0.15)' : d300, fontFamily: 'var(--font-body)', fontSize: '0.82rem', fontWeight: isSel ? 700 : 400, transition: 'all 0.15s' }}
-              onMouseEnter={e => { if (!disabled && !isSel) { e.currentTarget.style.background = 'rgba(201,168,76,0.2)'; e.currentTarget.style.color = gold } }}
-              onMouseLeave={e => { if (!disabled && !isSel) { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = d300 } }}>
+            <button
+              key={key}
+              disabled={dis}
+              onClick={() => onSelect({ year: view.year, month: view.month, day })}
+              className={`bk-cal-day${isSel ? ' selected' : ''}`}
+            >
               {day}
             </button>
           )
@@ -113,53 +111,52 @@ function Calendar({ selected, onSelect }) {
   )
 }
 
-// ── Input style (light) ───────────────────────────────────────────────────────
-const iStyle = {
-  width: '100%', padding: '0.75rem 1rem',
-  background: white, border: '1px solid rgba(13,33,68,0.15)',
-  borderRadius: '8px', color: t900,
-  fontFamily: 'var(--font-body)', fontSize: '0.88rem',
-  outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s',
-}
-
-// ── Step indicator ────────────────────────────────────────────────────────────
+// ── Step Bar ─────────────────────────────────────────────────────────────────
 function StepBar({ step }) {
+  const steps = [['1', 'Date & Time'], ['2', 'Your Details'], ['3', 'Confirm']]
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', padding: '0 1.75rem 2.5rem' }}>
-      {[['1', 'Date & Time'], ['2', 'Your Details'], ['3', 'Confirm']].map(([num, label], i) => (
-        <div key={num} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{
-            width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0,
-            background: step > i + 1 ? gold : step === i + 1 ? navy : '#f0f5ff',
-            border: `2px solid ${step >= i + 1 ? gold : 'rgba(13,33,68,0.15)'}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'var(--font-body)', fontSize: '0.72rem', fontWeight: 700,
-            color: step >= i + 1 ? (step > i + 1 ? navy : white) : t400,
-            transition: 'all 0.3s',
-          }}>
-            {step > i + 1 ? '✓' : num}
+    <div className="bk-stepbar">
+      {steps.map(([num, label], i) => {
+        const state = step > i + 1 ? 'done' : step === i + 1 ? 'active' : 'idle'
+        return (
+          <div key={num} className="bk-step-item">
+            <div className={`bk-step-dot ${state}`}>
+              {step > i + 1 ? '✓' : num}
+            </div>
+            <span className={`bk-step-label${step === i + 1 ? ' active' : ''}`}>{label}</span>
+            {i < 2 && <div className={`bk-step-line${step > i + 1 ? ' done' : ''}`} />}
           </div>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: step === i + 1 ? navy : t400, fontWeight: step === i + 1 ? 700 : 400, whiteSpace: 'nowrap' }}>{label}</span>
-          {i < 2 && <div style={{ width: '2.5rem', height: '2px', background: step > i + 1 ? gold : 'rgba(13,33,68,0.1)', borderRadius: '1px', transition: 'background 0.3s' }} />}
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Field helpers ─────────────────────────────────────────────────────────────
+function Field({ label, children }) {
+  return (
+    <div className="bk-field">
+      <label className="bk-label">{label}</label>
+      {children}
+    </div>
+  )
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 export default function BookingPage() {
-  const mobile = useMobile()
-  const [date,    setDate]    = useState(null)
-  const [time,    setTime]    = useState('')
-  const [form,    setForm]    = useState({ name: '', email: '', phone: '', company: '', service: '', notes: '' })
   const [step,    setStep]    = useState(1)
-  const [loading, setLoading] = useState(false)
+  const [selDate, setSelDate] = useState(null)
+  const [selTime, setSelTime] = useState('')
+  const [form,    setForm]    = useState({ name: '', email: '', phone: '', company: '', service: '', notes: '' })
   const [done,    setDone]    = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
 
-  const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
-  const dateLabel = date ? `${MONTHS[date.month]} ${date.day}, ${date.year}` : ''
+  const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }))
+
+  const dateLabel = selDate
+    ? `${MONTHS[selDate.month]} ${selDate.day}, ${selDate.year}`
+    : ''
 
   const sendEmail = async () => {
     setLoading(true); setError('')
@@ -173,32 +170,36 @@ export default function BookingPage() {
         })
         window.emailjs.init(EMAILJS_PUBLIC_KEY)
       }
-      await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, { from_name: form.name, from_email: form.email, phone: form.phone, company: form.company, service: form.service, date: dateLabel, time, notes: form.notes, to_email: COMPANY_EMAIL })
+      await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        from_name: form.name, from_email: form.email, phone: form.phone,
+        company: form.company, service: form.service,
+        date: dateLabel, time: selTime, notes: form.notes,
+        to_email: COMPANY_EMAIL,
+      })
       setDone(true)
     } catch {
       if (EMAILJS_SERVICE_ID === 'YOUR_SERVICE_ID') { setDone(true) }
-      else { setError('Could not send booking. Please call us directly at +1 (325) 703-0636.') }
+      else { setError('Could not send booking. Please call us at +1 (325) 703-0636.') }
     } finally { setLoading(false) }
   }
 
-  // ── Success screen ──────────────────────────────────────────────────────────
+  // ── Success ──────────────────────────────────────────────────────────────
   if (done) return (
-    <main style={{ minHeight: '100vh', background: '#f0f5ff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8rem 1.75rem 4rem' }}>
-      <div style={{ maxWidth: '520px', width: '100%', textAlign: 'center' }}>
-        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(201,168,76,0.12)', border: `2px solid ${gold}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem', fontSize: '2rem' }}>✓</div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 600, color: navy, marginBottom: '0.75rem' }}>Consultation Booked!</h1>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: t500, marginBottom: '2rem', lineHeight: 1.7 }}>
-          Our team will send a confirmation to <strong style={{ color: navy }}>{form.email}</strong> within one business day.
-        </p>
-        <div style={{ padding: '1.5rem', background: white, border: '1px solid rgba(13,33,68,0.1)', borderRadius: '14px', marginBottom: '2rem', textAlign: 'left', boxShadow: '0 2px 12px rgba(13,33,68,0.07)' }}>
-          {[['Date & Time', `${dateLabel} at ${time} EST`], ['Name', form.name], ['Email', form.email], ['Service', form.service]].map(([label, val]) => val && (
-            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', padding: '0.6rem 0', borderBottom: '1px solid rgba(13,33,68,0.07)' }}>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: t400 }}>{label}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: t900, textAlign: 'right' }}>{val}</span>
+    <main className="bk-main">
+      <style>{styles}</style>
+      <div className="bk-success-page">
+        <div className="bk-success-icon">✓</div>
+        <h2>Consultation Booked!</h2>
+        <p>Our team will send a confirmation to <strong>{form.email}</strong> within one business day.</p>
+        <div className="bk-confirm-card" style={{ maxWidth: 420, margin: '1.75rem auto' }}>
+          {[['Date & Time', `${dateLabel} at ${selTime} EST`], ['Name', form.name], ['Service', form.service]].map(([l, v]) => v && (
+            <div key={l} className="bk-confirm-row">
+              <span className="bk-confirm-lbl">{l}</span>
+              <span className="bk-confirm-val">{v}</span>
             </div>
           ))}
         </div>
-        <a href="/" style={{ display: 'inline-block', padding: '0.9rem 2rem', background: navy, color: white, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '7px' }}>
+        <a href="/" className="bk-btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>
           Return Home
         </a>
       </div>
@@ -206,191 +207,499 @@ export default function BookingPage() {
   )
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f8faff' }}>
+    <main className="bk-main">
+      <style>{styles}</style>
 
-      {/* ── Header (dark) ── */}
-      <section style={{ position: 'relative', padding: mobile ? '5rem 1.25rem 3rem' : '6rem 1.75rem 3.5rem', textAlign: 'center', overflow: 'hidden', background: navy }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 50% 80%, rgba(201,168,76,0.08) 0%, transparent 65%)' }} />
-        <div style={{ position: 'absolute', inset: 0, opacity: 0.03, backgroundImage: 'repeating-linear-gradient(90deg,#C9A84C 0,#C9A84C 1px,transparent 1px,transparent 72px),repeating-linear-gradient(0deg,#C9A84C 0,#C9A84C 1px,transparent 1px,transparent 72px)' }} />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '580px', margin: '0 auto' }}>
-          <span style={{ display: 'inline-block', padding: '0.35rem 1.1rem', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: gold, marginBottom: '1.25rem', background: 'rgba(201,168,76,0.06)' }}>
-            Book a Consultation
-          </span>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,5vw,3.2rem)', fontWeight: 700, color: white, marginBottom: '0.75rem', lineHeight: 1.1 }}>
-            Schedule Time With Our Team
-          </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: d400, lineHeight: 1.7 }}>
-            Pick a date and time that works for you. All consultations are held via phone or video call.
-          </p>
-        </div>
+      {/* ── HERO ── */}
+      <section className="bk-hero">
+        <div className="bk-hero-grid" />
+        <div className="bk-hero-glow" />
+        <Reveal>
+          <div className="bk-hero-inner">
+            <div className="bk-hero-badge">Book a Consultation</div>
+            <h1>Schedule Time With<br /><span>Our Team</span></h1>
+            <p className="bk-hero-sub">
+              Pick a date and time that works for you. All consultations are free and held via phone or video call.
+            </p>
+            <div className="bk-hero-stats">
+              {[
+                { val: 'Free',    lbl: 'First Call'     },
+                { val: '24h',     lbl: 'Confirmation'   },
+                { val: 'Mon–Fri', lbl: 'Availability'   },
+                { val: 'EST',     lbl: 'Timezone'       },
+              ].map(s => (
+                <div key={s.lbl} className="bk-hero-stat">
+                  <strong>{s.val}</strong>
+                  <span>{s.lbl}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
       </section>
 
-      {/* ── Steps content (light) ── */}
-      <section style={{ background: '#f0f5ff', padding: mobile ? '2.5rem 1.25rem 4rem' : '3rem 1.75rem 5rem' }}>
-        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          <StepBar step={step} />
+      {/* ── BODY ── */}
+      <div className="bk-body">
+        <StepBar step={step} />
 
-          {/* ── Step 1: Calendar + Time ── */}
-          {step === 1 && (
-            <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
-              <div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: t700, marginBottom: '0.75rem' }}>Select a Date</p>
-                <Calendar selected={date} onSelect={d => { setDate(d); setTime('') }} />
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: t400, marginTop: '0.75rem' }}>
-                  Weekdays only (Mon – Fri) · All times in EST
-                </p>
-              </div>
+        {/* ── STEP 1: Date & Time ── */}
+        {step === 1 && (
+          <Reveal>
+            <div className="bk-card">
+              <div className="bk-step-grid">
 
-              <div>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: date ? t700 : t400, marginBottom: '0.75rem' }}>
-                  {date ? `Available Times — ${dateLabel}` : 'Select a date to see times'}
-                </p>
+                {/* Calendar */}
+                <div>
+                  <p className="bk-section-label">Select a Date</p>
+                  <Calendar
+                    selected={selDate}
+                    onSelect={(d) => { setSelDate(d); setSelTime('') }}
+                  />
+                  <p className="bk-hint">Weekdays only (Mon – Fri) · All times in EST</p>
+                </div>
 
-                {date ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.6rem' }}>
-                    {TIME_SLOTS.map(slot => {
-                      const sel = time === slot
-                      return (
-                        <button key={slot} onClick={() => setTime(slot)} style={{
-                          padding: '0.65rem', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
-                          border: `1px solid ${sel ? gold : 'rgba(13,33,68,0.15)'}`,
-                          background: sel ? navy : white,
-                          color: sel ? white : t700,
-                          fontFamily: 'var(--font-body)', fontSize: '0.82rem', fontWeight: sel ? 700 : 400,
-                          boxShadow: sel ? `0 4px 12px rgba(13,33,68,0.2)` : '0 1px 4px rgba(13,33,68,0.06)',
-                        }}
-                          onMouseEnter={e => { if (!sel) { e.currentTarget.style.borderColor = gold; e.currentTarget.style.color = navy; e.currentTarget.style.background = 'rgba(201,168,76,0.06)' } }}
-                          onMouseLeave={e => { if (!sel) { e.currentTarget.style.borderColor = 'rgba(13,33,68,0.15)'; e.currentTarget.style.color = t700; e.currentTarget.style.background = white } }}>
-                          {slot}
+                {/* Time slots */}
+                <div>
+                  <p className="bk-section-label" style={{ color: selDate ? undefined : '#93a3c4' }}>
+                    {selDate ? `Times — ${dateLabel}` : 'Select a date to see times'}
+                  </p>
+
+                  {selDate ? (
+                    <div className="bk-time-grid">
+                      {TIME_SLOTS.map(t => (
+                        <button
+                          key={t}
+                          onClick={() => setSelTime(t)}
+                          className={`bk-time-btn${selTime === t ? ' selected' : ''}`}
+                        >
+                          {t}
                         </button>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div style={{ height: '200px', background: white, border: '1px solid rgba(13,33,68,0.1)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(13,33,68,0.05)' }}>
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: t400, textAlign: 'center' }}>← Pick a date first</p>
-                  </div>
-                )}
-
-                {date && time && (
-                  <div style={{ marginTop: '1.5rem' }}>
-                    <div style={{ padding: '1rem 1.25rem', background: navy, border: `1px solid ${gold}`, borderRadius: '10px', marginBottom: '1rem' }}>
-                      <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: gold, fontWeight: 600, margin: '0 0 0.2rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Selected Slot</p>
-                      <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: white, margin: 0 }}>{dateLabel} at {time} EST</p>
+                      ))}
                     </div>
-                    <button onClick={() => setStep(2)} style={{ width: '100%', padding: '0.9rem', background: gold, color: navy, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.25s' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#d4b86a'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = gold; e.currentTarget.style.transform = 'none' }}>
-                      Continue → Enter Details
-                    </button>
-                  </div>
-                )}
+                  ) : (
+                    <div className="bk-time-empty">
+                      <p>← Choose a date first</p>
+                    </div>
+                  )}
+
+                  {selDate && selTime && (
+                    <div style={{ marginTop: '1.25rem' }}>
+                      <div className="bk-slot-preview" style={{ marginBottom: '1rem' }}>
+                        <div className="bk-slot-lbl">Selected Slot</div>
+                        <div className="bk-slot-val">{dateLabel} at {selTime} EST</div>
+                      </div>
+                      <button className="bk-btn-primary" onClick={() => setStep(2)}>
+                        Continue → Enter Details
+                      </button>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
-          )}
+          </Reveal>
+        )}
 
-          {/* ── Step 2: Details ── */}
-          {step === 2 && (
-            <div style={{ maxWidth: '640px', margin: '0 auto' }}>
-              <div style={{ padding: '1rem 1.25rem', background: navy, border: `1px solid ${gold}`, borderRadius: '10px', marginBottom: '2rem' }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.68rem', color: gold, fontWeight: 600, margin: '0 0 0.2rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Your Selected Slot</p>
-                <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: white, margin: 0 }}>{dateLabel} at {time} EST</p>
+        {/* ── STEP 2: Details ── */}
+        {step === 2 && (
+          <Reveal>
+            <div className="bk-card" style={{ maxWidth: 680, margin: '0 auto' }}>
+              <div className="bk-slot-preview" style={{ marginBottom: '1.75rem' }}>
+                <div className="bk-slot-lbl">Your Selected Slot</div>
+                <div className="bk-slot-val">{dateLabel} at {selTime} EST</div>
               </div>
 
-              <div style={{ background: white, border: '1px solid rgba(13,33,68,0.1)', borderRadius: '16px', padding: mobile ? '1.5rem' : '2rem', boxShadow: '0 4px 20px rgba(13,33,68,0.07)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
-                  {[
-                    { key: 'name',    label: 'Full Name *',           type: 'text',  ph: 'John Doe',         req: true },
-                    { key: 'email',   label: 'Email Address *',        type: 'email', ph: 'john@company.com', req: true },
-                    { key: 'phone',   label: 'Phone Number',           type: 'tel',   ph: '+1 (325) 000-0000' },
-                    { key: 'company', label: 'Company / Organisation',  type: 'text',  ph: 'Your company' },
-                  ].map(({ key, label, type, ph, req }) => (
-                    <div key={key}>
-                      <label style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: t500, marginBottom: '0.45rem' }}>{label}</label>
-                      <input type={type} value={form[key]} onChange={set(key)} placeholder={ph} required={req || false} style={iStyle}
-                        onFocus={e => { e.target.style.borderColor = gold; e.target.style.boxShadow = '0 0 0 3px rgba(201,168,76,0.1)' }}
-                        onBlur={e => { e.target.style.borderColor = 'rgba(13,33,68,0.15)'; e.target.style.boxShadow = 'none' }} />
-                    </div>
-                  ))}
-                </div>
+              <div className="bk-field-grid">
+                <Field label="Full Name *">
+                  <input className="bk-input" type="text" placeholder="John Doe" value={form.name} onChange={set('name')} required />
+                </Field>
+                <Field label="Email Address *">
+                  <input className="bk-input" type="email" placeholder="john@company.com" value={form.email} onChange={set('email')} required />
+                </Field>
+                <Field label="Phone Number">
+                  <input className="bk-input" type="tel" placeholder="+1 (325) 000-0000" value={form.phone} onChange={set('phone')} />
+                </Field>
+                <Field label="Company / Organisation">
+                  <input className="bk-input" type="text" placeholder="Your company" value={form.company} onChange={set('company')} />
+                </Field>
+              </div>
 
-                <div>
-                  <label style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: t500, marginBottom: '0.45rem' }}>Service of Interest *</label>
-                  <select value={form.service} onChange={set('service')} required style={{ ...iStyle, appearance: 'none', cursor: 'pointer' }}
-                    onFocus={e => { e.target.style.borderColor = gold; e.target.style.boxShadow = '0 0 0 3px rgba(201,168,76,0.1)' }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(13,33,68,0.15)'; e.target.style.boxShadow = 'none' }}>
-                    <option value="">Select a service…</option>
-                    {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
+              <Field label="Service of Interest *">
+                <select className="bk-input bk-select" value={form.service} onChange={set('service')} required>
+                  <option value="">Select a service…</option>
+                  {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Field>
 
-                <div>
-                  <label style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: t500, marginBottom: '0.45rem' }}>Additional Notes</label>
-                  <textarea value={form.notes} onChange={set('notes')} rows={4} placeholder="Briefly describe what you'd like to discuss…"
-                    style={{ ...iStyle, resize: 'vertical' }}
-                    onFocus={e => { e.target.style.borderColor = gold; e.target.style.boxShadow = '0 0 0 3px rgba(201,168,76,0.1)' }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(13,33,68,0.15)'; e.target.style.boxShadow = 'none' }} />
-                </div>
+              <Field label="Additional Notes">
+                <textarea
+                  className="bk-input bk-textarea"
+                  placeholder="Briefly describe what you'd like to discuss…"
+                  value={form.notes}
+                  onChange={set('notes')}
+                />
+              </Field>
 
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <button onClick={() => setStep(1)} style={{ flex: 1, padding: '0.9rem', border: '1px solid rgba(13,33,68,0.15)', background: '#f0f5ff', color: t700, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = gold; e.currentTarget.style.color = navy }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(13,33,68,0.15)'; e.currentTarget.style.color = t700 }}>
-                    ← Back
-                  </button>
-                  <button onClick={() => { if (!form.name || !form.email || !form.service) return; setStep(3) }}
-                    style={{ flex: 2, padding: '0.9rem', background: navy, color: white, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.25s' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = gold; e.currentTarget.style.color = navy }}
-                    onMouseLeave={e => { e.currentTarget.style.background = navy; e.currentTarget.style.color = white }}>
-                    Review Booking →
-                  </button>
-                </div>
+              <div className="bk-btn-row">
+                <button className="bk-btn-secondary" onClick={() => setStep(1)}>← Back</button>
+                <button
+                  className="bk-btn-primary"
+                  style={{ flex: 2 }}
+                  onClick={() => {
+                    if (!form.name || !form.email || !form.service) return
+                    setStep(3)
+                  }}
+                >
+                  Review Booking →
+                </button>
               </div>
             </div>
-          )}
+          </Reveal>
+        )}
 
-          {/* ── Step 3: Confirm ── */}
-          {step === 3 && (
-            <div style={{ maxWidth: '560px', margin: '0 auto' }}>
-              <div style={{ background: white, border: '1px solid rgba(13,33,68,0.1)', borderRadius: '16px', padding: mobile ? '1.5rem' : '2rem', boxShadow: '0 4px 20px rgba(13,33,68,0.07)', marginBottom: '1.5rem' }}>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 600, color: navy, marginBottom: '1.5rem' }}>Confirm Your Booking</h2>
+        {/* ── STEP 3: Confirm ── */}
+        {step === 3 && (
+          <Reveal>
+            <div className="bk-card" style={{ maxWidth: 580, margin: '0 auto' }}>
+              <div className="bk-card-title">Confirm Your Booking</div>
+              <div className="bk-confirm-card">
                 {[
-                  ['Date & Time', `${dateLabel} at ${time} EST`],
+                  ['Date & Time', `${dateLabel} at ${selTime} EST`],
                   ['Name',        form.name],
                   ['Email',       form.email],
                   ['Phone',       form.phone || '—'],
                   ['Company',     form.company || '—'],
                   ['Service',     form.service],
                   ['Notes',       form.notes || '—'],
-                ].map(([label, val]) => (
-                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', padding: '0.7rem 0', borderBottom: '1px solid rgba(13,33,68,0.07)' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', color: t400, flexShrink: 0 }}>{label}</span>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: t900, textAlign: 'right' }}>{val}</span>
+                ].map(([l, v]) => (
+                  <div key={l} className="bk-confirm-row">
+                    <span className="bk-confirm-lbl">{l}</span>
+                    <span className="bk-confirm-val">{v}</span>
                   </div>
                 ))}
               </div>
 
-              {error && (
-                <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(220,38,38,0.05)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: '8px', marginBottom: '1rem' }}>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: '#dc2626', margin: 0 }}>{error}</p>
-                </div>
-              )}
+              {error && <div className="bk-error">{error}</div>}
 
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button onClick={() => setStep(2)} style={{ flex: 1, padding: '0.9rem', border: '1px solid rgba(13,33,68,0.15)', background: '#f0f5ff', color: t700, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' }}>
-                  ← Edit
-                </button>
-                <button onClick={sendEmail} disabled={loading} style={{ flex: 2, padding: '0.9rem', background: loading ? 'rgba(13,33,68,0.4)' : gold, color: loading ? '#fff' : navy, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
+              <div className="bk-btn-row">
+                <button className="bk-btn-secondary" onClick={() => setStep(2)}>← Edit</button>
+                <button
+                  className="bk-btn-primary"
+                  style={{ flex: 2 }}
+                  onClick={sendEmail}
+                  disabled={loading}
+                >
                   {loading ? 'Sending…' : 'Confirm Booking ✓'}
                 </button>
               </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: t400, textAlign: 'center', marginTop: '1rem', lineHeight: 1.6 }}>
-                A confirmation will be sent to <strong style={{ color: t700 }}>{form.email}</strong>. We'll follow up to confirm and share a meeting link.
+              <p className="bk-confirm-note">
+                A confirmation will be sent to <strong>{form.email}</strong>. We'll follow up to confirm and share a meeting link.
               </p>
             </div>
-          )}
-        </div>
-      </section>
+          </Reveal>
+        )}
+      </div>
+
     </main>
   )
 }
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+const styles = `
+  /* ── Tokens ── */
+  :root {
+    --blue:    #1e40af;
+    --blue2:   #1d4ed8;
+    --blue3:   #1e3a8a;
+    --orange:  #f97316;
+    --orange2: #ea6c0a;
+    --white:   #ffffff;
+    --gray50:  #f9fafb;
+    --gray100: #f3f4f6;
+    --gray600: #4b5563;
+    --gray700: #374151;
+  }
+
+  /* ── Base ── */
+  .bk-main {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow-x: hidden;
+    background: #f3f4f6;
+    min-height: 100vh;
+  }
+
+  /* ── Reveal (matches ContactPage) ── */
+  .reveal-block {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.65s ease var(--delay, 0ms), transform 0.65s ease var(--delay, 0ms);
+  }
+  .reveal-block.revealed { opacity: 1; transform: translateY(0); }
+
+  /* ── Hero ── */
+  .bk-hero {
+    position: relative;
+    padding: 6rem 2rem 4rem;
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #1d4ed8 100%);
+    overflow: hidden;
+    text-align: center;
+  }
+  .bk-hero-grid {
+    position: absolute; inset: 0; opacity: 0.04;
+    background-image:
+      repeating-linear-gradient(90deg, #f97316 0, #f97316 1px, transparent 1px, transparent 64px),
+      repeating-linear-gradient(0deg,  #f97316 0, #f97316 1px, transparent 1px, transparent 64px);
+  }
+  .bk-hero-glow {
+    position: absolute; top: -10%; right: 10%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .bk-hero-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+  .bk-hero-badge {
+    display: inline-block; padding: 0.38rem 1.2rem;
+    border: 1px solid rgba(249,115,22,0.4); border-radius: 999px;
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase;
+    color: #fdba74; background: rgba(249,115,22,0.08); margin-bottom: 1.4rem;
+  }
+  .bk-hero h1 {
+    font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 800; color: #fff;
+    line-height: 1.08; margin-bottom: 1.25rem;
+  }
+  .bk-hero h1 span { color: #fb923c; }
+  .bk-hero-sub {
+    font-size: 0.98rem; color: #bfdbfe; line-height: 1.8;
+    max-width: 480px; margin: 0 auto 1.5rem;
+  }
+  .bk-hero-stats {
+    display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 2rem;
+  }
+  .bk-hero-stat {
+    padding: 0.6rem 1.4rem;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 10px; text-align: center;
+  }
+  .bk-hero-stat strong { display: block; font-size: 1.4rem; font-weight: 800; color: #fb923c; }
+  .bk-hero-stat span   { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: #bfdbfe; font-weight: 600; }
+
+  /* ── Body ── */
+  .bk-body {
+    max-width: 1100px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 5rem;
+  }
+
+  /* ── Step Bar ── */
+  .bk-stepbar {
+    display: flex; justify-content: center; align-items: center;
+    gap: 0.5rem; padding: 0 1rem 2.25rem; flex-wrap: wrap;
+  }
+  .bk-step-item { display: flex; align-items: center; gap: 0.5rem; }
+  .bk-step-dot {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700; transition: all 0.3s;
+  }
+  .bk-step-dot.done   { background: #f97316; border: 2px solid #f97316; color: #fff; }
+  .bk-step-dot.active { background: #1e3a8a; border: 2px solid #f97316; color: #fff; }
+  .bk-step-dot.idle   { background: #fff; border: 2px solid rgba(30,64,175,0.2); color: #93a3c4; }
+  .bk-step-label {
+    font-size: 0.72rem; color: #4b5563; white-space: nowrap; transition: all 0.3s;
+  }
+  .bk-step-label.active { color: #1e3a8a; font-weight: 700; }
+  .bk-step-line {
+    width: 2.5rem; height: 2px; border-radius: 1px;
+    background: rgba(30,64,175,0.12); transition: background 0.3s;
+  }
+  .bk-step-line.done { background: #f97316; }
+
+  /* ── Card ── */
+  .bk-card {
+    background: #fff;
+    border: 1px solid rgba(30,64,175,0.1);
+    border-radius: 20px;
+    padding: 2.25rem;
+    box-shadow: 0 4px 24px rgba(30,58,138,0.08);
+  }
+  .bk-card-title {
+    font-size: clamp(1.4rem, 3vw, 1.9rem); font-weight: 800; color: #1e3a8a;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Step grid ── */
+  .bk-step-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (max-width: 820px) { .bk-step-grid { grid-template-columns: 1fr; } }
+
+  /* ── Section label ── */
+  .bk-section-label {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: #374151; margin-bottom: 0.7rem;
+  }
+  .bk-hint { font-size: 0.73rem; color: #93a3c4; margin-top: 0.65rem; }
+
+  /* ── Calendar ── */
+  .bk-cal {
+    background: #1e3a8a;
+    border: 1px solid rgba(249,115,22,0.2);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 4px 20px rgba(30,58,138,0.15);
+  }
+  .bk-cal-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.9rem 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .bk-cal-btn {
+    background: none; border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px; color: #93c5fd; cursor: pointer;
+    padding: 0.28rem 0.65rem; font-size: 1rem; transition: all 0.2s;
+  }
+  .bk-cal-btn:hover { border-color: #f97316; color: #f97316; }
+  .bk-cal-month { font-size: 1rem; font-weight: 700; color: #fff; }
+  .bk-cal-hdr {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    padding: 0.6rem 0.75rem 0.25rem;
+  }
+  .bk-cal-daylbl {
+    text-align: center; font-size: 0.55rem; font-weight: 700;
+    letter-spacing: 0.1em; color: rgba(147,197,253,0.6);
+  }
+  .bk-cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    padding: 0 0.75rem 0.75rem; gap: 3px;
+  }
+  .bk-cal-day {
+    padding: 0.48rem; border-radius: 7px; border: none;
+    background: rgba(255,255,255,0.06); color: #bfdbfe;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.8rem; cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .bk-cal-day:hover:not(:disabled) { background: rgba(249,115,22,0.22); color: #fb923c; }
+  .bk-cal-day.selected { background: #f97316 !important; color: #fff !important; font-weight: 700; }
+  .bk-cal-day:disabled { background: transparent; color: rgba(255,255,255,0.15); cursor: not-allowed; }
+
+  /* ── Time grid ── */
+  .bk-time-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.55rem; }
+  .bk-time-btn {
+    padding: 0.6rem; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    border: 1.5px solid rgba(30,64,175,0.15);
+    background: #fff; color: #374151;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.82rem;
+    box-shadow: 0 1px 4px rgba(30,58,138,0.06);
+  }
+  .bk-time-btn:hover { border-color: #f97316; color: #1e3a8a; background: rgba(249,115,22,0.05); }
+  .bk-time-btn.selected { background: #1e3a8a !important; color: #fff !important; border-color: #f97316 !important; font-weight: 700; }
+  .bk-time-empty {
+    height: 200px; background: #f9fafb;
+    border: 1.5px dashed rgba(30,64,175,0.15);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  }
+  .bk-time-empty p { font-size: 0.85rem; color: #93a3c4; }
+
+  /* ── Slot preview banner ── */
+  .bk-slot-preview {
+    padding: 0.9rem 1.25rem;
+    background: #1e3a8a; border: 1px solid #f97316;
+    border-radius: 10px;
+  }
+  .bk-slot-lbl {
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #fb923c; margin-bottom: 0.2rem;
+  }
+  .bk-slot-val { font-size: 1rem; font-weight: 700; color: #fff; }
+
+  /* ── Form fields ── */
+  .bk-field-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0;
+  }
+  @media (max-width: 600px) { .bk-field-grid { grid-template-columns: 1fr; } }
+  .bk-field { margin-bottom: 1rem; }
+  .bk-label {
+    display: block; font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: #4a6fa5; margin-bottom: 0.42rem;
+  }
+  .bk-input {
+    width: 100%; padding: 0.74rem 1rem;
+    background: #fff; border: 1.5px solid rgba(30,64,175,0.15);
+    border-radius: 8px; color: #1e3a8a;
+    font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.88rem;
+    outline: none; box-sizing: border-box; transition: all 0.2s;
+  }
+  .bk-input:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.1); }
+  .bk-select { appearance: none; cursor: pointer; }
+  .bk-textarea { resize: vertical; min-height: 120px; }
+
+  /* ── Buttons ── */
+  .bk-btn-primary {
+    width: 100%; padding: 0.9rem;
+    background: #1e40af; color: #fff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+    border: none; border-radius: 8px; cursor: pointer;
+    transition: all 0.25s;
+  }
+  .bk-btn-primary:hover:not(:disabled) {
+    background: #f97316; transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(249,115,22,0.35);
+  }
+  .bk-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+  .bk-btn-secondary {
+    flex: 1; padding: 0.9rem;
+    border: 1.5px solid rgba(30,64,175,0.18); background: #f3f4f6; color: #374151;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .bk-btn-secondary:hover { border-color: #f97316; color: #1e3a8a; background: #fff; }
+  .bk-btn-row { display: flex; gap: 1rem; margin-top: 1.5rem; }
+
+  /* ── Confirm panel ── */
+  .bk-confirm-card {
+    background: #f9fafb; border: 1px solid rgba(30,64,175,0.08);
+    border-radius: 12px; padding: 0.25rem 1.25rem; margin-bottom: 0.5rem;
+  }
+  .bk-confirm-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem; padding: 0.65rem 0;
+    border-bottom: 1px solid rgba(30,64,175,0.07);
+  }
+  .bk-confirm-row:last-child { border-bottom: none; }
+  .bk-confirm-lbl {
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #93a3c4; flex-shrink: 0;
+  }
+  .bk-confirm-val { font-size: 0.85rem; color: #1e3a8a; text-align: right; }
+  .bk-confirm-note {
+    font-size: 0.72rem; color: #93a3c4; text-align: center;
+    margin-top: 1rem; line-height: 1.6;
+  }
+
+  /* ── Error ── */
+  .bk-error {
+    padding: 0.8rem 1.1rem;
+    background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.2);
+    border-radius: 8px; margin-top: 1rem;
+    font-size: 0.82rem; color: #dc2626;
+  }
+
+  /* ── Success page ── */
+  .bk-success-page {
+    max-width: 520px; margin: 0 auto;
+    padding: 8rem 1.75rem 4rem; text-align: center;
+  }
+  .bk-success-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(249,115,22,0.1); border: 2px solid #f97316;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem; font-size: 1.75rem; color: #f97316;
+  }
+  .bk-success-page h2 { font-size: 2.2rem; font-weight: 800; color: #1e3a8a; margin-bottom: 0.75rem; }
+  .bk-success-page p  { font-size: 0.9rem; color: #4b5563; line-height: 1.75; }
+`

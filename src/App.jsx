@@ -37,7 +37,7 @@ function AppRoutes() {
           </div>
         } />
       </Routes>
-      {!isLetterhead && <Footer />}
+      <Footer />
     </>
   )
 }

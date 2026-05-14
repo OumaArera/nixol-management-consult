@@ -1,62 +1,27 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
-// ── Colour tokens (matches new bright palette) ────────────────────────────────
-const gold  = '#C9A84C'
-const navy  = '#0d2144'
-const navy2 = '#1a3a6b'
-const white = '#ffffff'
-const t900  = '#0d2144'
-const t700  = '#2d4a7a'
-const t500  = '#4a6fa5'
-const t400  = '#7a9bc4'
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function useMobile() {
-  const [mobile, setMobile] = useState(window.innerWidth < 768)
-  useEffect(() => {
-    const fn = () => setMobile(window.innerWidth < 768)
-    window.addEventListener('resize', fn)
-    return () => window.removeEventListener('resize', fn)
-  }, [])
-  return mobile
-}
-
-function useReveal() {
+function useReveal(threshold = 0.1) {
   const ref = useRef(null)
   useEffect(() => {
     const el = ref.current; if (!el) return
     const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; obs.disconnect() }
-    }, { threshold: 0.1 })
+      if (e.isIntersecting) { el.classList.add('revealed'); obs.disconnect() }
+    }, { threshold })
     obs.observe(el); return () => obs.disconnect()
   }, [])
   return ref
 }
 
-function Reveal({ children, style = {}, delay = 0 }) {
+function Reveal({ children, className = '', delay = 0, style = {} }) {
   const ref = useReveal()
   return (
-    <div ref={ref} style={{ opacity: 0, transform: 'translateY(24px)', transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`, ...style }}>
+    <div ref={ref} className={`reveal-block ${className}`} style={{ '--delay': `${delay}ms`, ...style }}>
       {children}
     </div>
   )
 }
 
-const Badge = ({ text, dark = false }) => (
-  <span style={{
-    display: 'inline-block', padding: '0.35rem 1.1rem',
-    border: `1px solid ${dark ? 'rgba(201,168,76,0.35)' : 'rgba(13,33,68,0.15)'}`,
-    borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem',
-    fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase',
-    color: dark ? gold : t700, marginBottom: '1.25rem',
-    background: dark ? 'rgba(201,168,76,0.06)' : 'rgba(13,33,68,0.04)',
-  }}>
-    {text}
-  </span>
-)
-
-// ── Data ──────────────────────────────────────────────────────────────────────
 const CLIENTS = [
   {
     name: 'Edmonds',
@@ -65,7 +30,8 @@ const CLIENTS = [
     tagline: 'A trusted partner in financial clarity and strategic performance.',
     description: 'Nixol has been a trusted advisory partner for Edmonds, bringing strategic clarity and financial discipline to their operations. Our team\'s depth of expertise and hands-on approach made an immediate and measurable difference across their financial and operational landscape.',
     services: ['Financial Management & Advisory', 'Strategic Planning', 'Operations Optimization'],
-    highlight: 'Measurable improvements in financial performance and operational efficiency.',
+    result: 'Measurable improvements in financial performance and operational efficiency.',
+    stat: { val: '↑ 34%', lbl: 'Operational Efficiency' },
   },
   {
     name: 'Bothell',
@@ -74,110 +40,70 @@ const CLIENTS = [
     tagline: 'Stronger governance, sharper controls, and smarter operations.',
     description: 'Working with Nixol elevated how Bothell approaches governance, risk, and internal controls. Our consultants understood their unique challenges and delivered solutions that were practical, scalable, and results-driven — tailored to the nonprofit sector.',
     services: ['Management & Advisory', 'Accounting & Compliance', 'Business Strategy & Growth'],
-    highlight: 'Strengthened internal controls and governance frameworks across the organisation.',
+    result: 'Strengthened internal controls and governance frameworks across the organisation.',
+    stat: { val: '100%', lbl: 'Audit-Ready Status' },
   },
 ]
 
 const INDUSTRIES = [
-  'Education & Nonprofits',
-  'Oil and Gas',
-  'Professional Services',
-  'Retail & Distribution',
-  'Manufacturing & Supply Chain',
-  'Healthcare & Medical Facilities',
-  'Startups & Emerging Enterprises',
+  'Education & Nonprofits', 'Oil and Gas', 'Professional Services',
+  'Retail & Distribution', 'Manufacturing & Supply Chain',
+  'Healthcare & Medical Facilities', 'Startups & Emerging Enterprises',
 ]
 
 const WHY = [
-  { icon: '🎯', label: 'Tailored Engagements',   desc: 'No two clients are the same. Every solution is built around your specific goals, challenges, and sector context.' },
-  { icon: '📊', label: 'Data-Driven Insights',    desc: 'We ground every recommendation in rigorous analysis and real financial intelligence — not guesswork.' },
-  { icon: '🤝', label: 'Long-Term Partnership',   desc: 'We measure our success by the milestones our clients reach, not by hours billed or reports delivered.' },
-  { icon: '⚡', label: 'Measurable Results',       desc: 'Every engagement is designed around clear outcomes — improved efficiency, profitability, and governance.' },
+  { icon: '🎯', label: 'Tailored Engagements',  desc: 'No two clients are the same. Every solution is built around your specific goals, challenges, and sector context.' },
+  { icon: '📊', label: 'Data-Driven Insights',   desc: 'We ground every recommendation in rigorous analysis and real financial intelligence — not guesswork.' },
+  { icon: '🤝', label: 'Long-Term Partnership',  desc: 'We measure our success by the milestones our clients reach, not by hours billed or reports delivered.' },
+  { icon: '⚡', label: 'Measurable Results',      desc: 'Every engagement is designed around clear outcomes — improved efficiency, profitability, and governance.' },
 ]
 
-// ── Client Card ───────────────────────────────────────────────────────────────
-function ClientCard({ client, delay }) {
+function ClientCard({ client, delay, flipped }) {
   const ref = useReveal()
-
   return (
-    <div ref={ref} style={{ opacity: 0, transform: 'translateY(24px)', transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`, height: '100%' }}>
-      <div style={{
-        background: white, border: '1px solid rgba(13,33,68,0.1)',
-        borderRadius: '20px', overflow: 'hidden', height: '100%',
-        display: 'flex', flexDirection: 'column',
-        boxShadow: '0 4px 20px rgba(13,33,68,0.07)',
-        transition: 'all 0.35s',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.45)'; e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 16px 40px rgba(13,33,68,0.13)' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(13,33,68,0.1)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(13,33,68,0.07)' }}
-      >
-        {/* Logo area */}
-        <div style={{
-          height: '200px',
-          background: 'linear-gradient(135deg, #0d2144 0%, #1a3a6b 100%)',
-          borderBottom: `3px solid ${gold}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '2rem', position: 'relative',
-        }}>
-          {/* Subtle grid pattern */}
-          <div style={{ position: 'absolute', inset: 0, opacity: 0.04, backgroundImage: 'repeating-linear-gradient(90deg,#C9A84C 0,#C9A84C 1px,transparent 1px,transparent 48px),repeating-linear-gradient(0deg,#C9A84C 0,#C9A84C 1px,transparent 1px,transparent 48px)' }} />
-          <img
-            src={client.logo}
-            alt={client.name}
-            style={{ maxHeight: '110px', maxWidth: '250px', width: 'auto', objectFit: 'contain', position: 'relative', zIndex: 1, filter: 'brightness(1.05)' }}
-            onError={e => {
-              e.target.style.display = 'none'
-              const el = document.createElement('div')
-              el.style.cssText = `font-family:Georgia,serif;font-size:2.8rem;font-weight:700;color:#ffffff;letter-spacing:0.08em;position:relative;z-index:1;`
-              el.textContent = client.name
-              e.target.parentElement.appendChild(el)
-            }}
-          />
+    <div ref={ref} className="reveal-block client-card-wrap" style={{ '--delay': `${delay}ms` }}>
+      <div className={`client-card ${flipped ? 'client-card-flipped' : ''}`}>
+
+        {/* ── Visual panel ── */}
+        <div className="client-card-visual">
+          <div className="client-card-grid" />
+          <div className="client-card-glow" />
+          <div className="client-card-logo-wrap">
+            <img
+              src={client.logo}
+              alt={client.name}
+              className="client-card-logo"
+              onError={e => {
+                e.target.style.display = 'none'
+                const el = document.createElement('span')
+                el.className = 'client-card-name-fallback'
+                el.textContent = client.name
+                e.target.parentElement.appendChild(el)
+              }}
+            />
+          </div>
+          <div className="client-card-stat-box">
+            <strong>{client.stat.val}</strong>
+            <span>{client.stat.lbl}</span>
+          </div>
+          <span className="client-card-sector">{client.sector}</span>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Sector badge */}
-          <span style={{
-            alignSelf: 'flex-start', padding: '0.3rem 0.85rem',
-            background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.25)',
-            borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.6rem',
-            fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: gold,
-          }}>
-            {client.sector}
-          </span>
+        {/* ── Content panel ── */}
+        <div className="client-card-content">
+          <p className="client-card-tagline">"{client.tagline}"</p>
+          <p className="client-card-desc">{client.description}</p>
 
-          {/* Tagline */}
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontStyle: 'italic', color: t700, lineHeight: 1.5, margin: 0 }}>
-            "{client.tagline}"
-          </p>
-
-          {/* Description */}
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.84rem', color: t500, lineHeight: 1.75, margin: 0 }}>
-            {client.description}
-          </p>
-
-          {/* Highlight */}
-          <div style={{ padding: '0.85rem 1.1rem', background: '#f0f5ff', border: '1px solid rgba(13,33,68,0.08)', borderLeft: `3px solid ${gold}`, borderRadius: '0 8px 8px 0' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: t700, margin: 0, lineHeight: 1.55 }}>
-              <strong style={{ color: navy, fontWeight: 600 }}>Result: </strong>{client.highlight}
-            </p>
+          <div className="client-card-result">
+            <span className="client-card-result-dot" />
+            <p><strong>Result: </strong>{client.result}</p>
           </div>
 
-          {/* Services tags */}
-          <div style={{ marginTop: 'auto' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.58rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: t400, marginBottom: '0.6rem' }}>
-              Services Engaged
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+          <div className="client-card-services">
+            <p className="client-card-services-label">Services Engaged</p>
+            <div className="client-card-tags">
               {client.services.map(s => (
-                <span key={s} style={{
-                  padding: '0.3rem 0.75rem', background: '#f8faff',
-                  border: '1px solid rgba(13,33,68,0.1)', borderRadius: '999px',
-                  fontFamily: 'var(--font-body)', fontSize: '0.7rem', color: t700,
-                }}>
-                  {s}
-                </span>
+                <span key={s} className="client-tag">{s}</span>
               ))}
             </div>
           </div>
@@ -187,52 +113,191 @@ function ClientCard({ client, delay }) {
   )
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
 export default function ClientsPage() {
-  const mobile = useMobile()
-
   return (
-    <main style={{ paddingTop: '4rem', minHeight: '100vh', background: '#f8faff' }}>
+    <main className="cp-main">
+      <style>{`
+        /* ── Tokens ── */
+        :root {
+          --blue:   #1e40af;
+          --blue2:  #1d4ed8;
+          --blue3:  #1e3a8a;
+          --orange: #f97316;
+          --orange2:#ea6c0a;
+          --white:  #ffffff;
+          --gray50: #f9fafb;
+          --gray100:#f3f4f6;
+          --gray600:#4b5563;
+          --gray700:#374151;
+        }
 
-      {/* ── Header (dark) ── */}
-      <section style={{ position: 'relative', padding: mobile ? '3rem 1.25rem 2.5rem' : '4rem 1.75rem 3rem', textAlign: 'center', overflow: 'hidden', background: navy }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 50% 70%, rgba(201,168,76,0.08) 0%, transparent 65%)' }} />
-        <div style={{ position: 'absolute', inset: 0, opacity: 0.03, backgroundImage: 'repeating-linear-gradient(90deg,#C9A84C 0,#C9A84C 1px,transparent 1px,transparent 72px),repeating-linear-gradient(0deg,#C9A84C 0,#C9A84C 1px,transparent 1px,transparent 72px)' }} />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '640px', margin: '0 auto' }}>
-          <Badge text="Our Clients" dark />
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem,5vw,3.8rem)', fontWeight: 700, color: white, marginBottom: '1rem', lineHeight: 1.1 }}>
-            Organizations That Trust Nixol
-          </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.95rem', color: '#B0BCCC', lineHeight: 1.75 }}>
-            We are proud to partner with organizations committed to operational excellence, financial clarity, and long-term strategic growth.
-          </p>
-        </div>
+        /* ── Base ── */
+        .cp-main { font-family: 'Segoe UI', system-ui, sans-serif; overflow-x: hidden; background: #f3f4f6; }
+
+        /* ── Reveal ── */
+        .reveal-block { opacity: 0; transform: translateY(24px); transition: opacity 0.65s ease var(--delay,0ms), transform 0.65s ease var(--delay,0ms); }
+        .reveal-block.revealed { opacity: 1; transform: translateY(0); }
+
+        /* ── Hero ── */
+        .cp-hero {
+          position: relative; padding: 6rem 2rem 4.5rem; text-align: center; overflow: hidden;
+          background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #1d4ed8 100%);
+        }
+        .cp-hero-grid {
+          position: absolute; inset: 0; opacity: 0.04;
+          background-image:
+            repeating-linear-gradient(90deg,#f97316 0,#f97316 1px,transparent 1px,transparent 64px),
+            repeating-linear-gradient(0deg,#f97316 0,#f97316 1px,transparent 1px,transparent 64px);
+        }
+        .cp-hero-glow { position: absolute; bottom: -5%; left: 15%; width: 480px; height: 480px; background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 65%); border-radius: 50%; }
+        .cp-hero-inner { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+        .cp-hero-badge { display: inline-block; padding: 0.38rem 1.2rem; border: 1px solid rgba(249,115,22,0.4); border-radius: 999px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #fdba74; background: rgba(249,115,22,0.08); margin-bottom: 1.4rem; }
+        .cp-hero h1 { font-size: clamp(2.4rem,6vw,4rem); font-weight: 800; color: #fff; line-height: 1.08; margin-bottom: 1.25rem; }
+        .cp-hero h1 span { color: #fb923c; }
+        .cp-hero-sub { font-size: 0.97rem; color: #bfdbfe; line-height: 1.8; max-width: 540px; margin: 0 auto; }
+
+        /* ── Logo strip ── */
+        .cp-logo-strip { background: #fff; border-bottom: 1px solid rgba(30,64,175,0.1); padding: 2.25rem 2rem; }
+        .cp-logo-strip-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #9ca3af; text-align: center; margin-bottom: 1.5rem; }
+        .cp-logo-strip-logos { display: flex; flex-wrap: wrap; gap: 1.25rem; justify-content: center; align-items: center; }
+        .cp-logo-pill {
+          padding: 0.9rem 2rem; background: #f3f4f6; border: 1px solid rgba(30,64,175,0.1);
+          border-radius: 12px; display: flex; align-items: center; justify-content: center;
+          min-width: 140px; min-height: 64px; transition: all 0.25s;
+          box-shadow: 0 2px 8px rgba(30,58,138,0.05);
+        }
+        .cp-logo-pill:hover { border-color: rgba(249,115,22,0.4); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(30,58,138,0.1); }
+        .cp-logo-pill img { max-height: 40px; max-width: 110px; width: auto; object-fit: contain; }
+
+        /* ── Section shell ── */
+        .cp-section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+        .cp-section-head { text-align: center; margin-bottom: 3.5rem; }
+        .cp-section-badge { display: inline-block; padding: 0.35rem 1.1rem; border: 1px solid rgba(30,64,175,0.15); border-radius: 999px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #1d4ed8; background: rgba(30,64,175,0.05); margin-bottom: 1rem; }
+        .cp-section-head h2 { font-size: clamp(1.8rem,3.5vw,2.6rem); font-weight: 700; color: #1e3a8a; margin-bottom: 0.75rem; }
+        .cp-divider { width: 80px; height: 4px; background: #f97316; border-radius: 2px; margin: 0 auto 1rem; }
+        .cp-section-head p { font-size: 0.9rem; color: #4b5563; max-width: 520px; margin: 0 auto; line-height: 1.75; }
+
+        /* ── Client cards (horizontal split) ── */
+        .cp-clients-list { display: flex; flex-direction: column; gap: 2.5rem; }
+
+        .client-card-wrap { }
+        .client-card {
+          display: grid; grid-template-columns: 380px 1fr;
+          background: #fff; border: 1px solid rgba(30,64,175,0.1);
+          border-radius: 20px; overflow: hidden;
+          box-shadow: 0 4px 24px rgba(30,58,138,0.08);
+          transition: box-shadow 0.3s, border-color 0.3s;
+        }
+        .client-card:hover { border-color: rgba(249,115,22,0.35); box-shadow: 0 12px 40px rgba(30,58,138,0.14); }
+        .client-card-flipped { direction: rtl; }
+        .client-card-flipped > * { direction: ltr; }
+
+        /* Visual panel */
+        .client-card-visual {
+          position: relative; overflow: hidden;
+          background: linear-gradient(145deg, #1e3a8a 0%, #1e40af 60%, #1d4ed8 100%);
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          padding: 3rem 2rem; gap: 1.5rem; min-height: 320px;
+        }
+        .client-card-grid { position: absolute; inset: 0; opacity: 0.05; background-image: repeating-linear-gradient(90deg,#f97316 0,#f97316 1px,transparent 1px,transparent 48px),repeating-linear-gradient(0deg,#f97316 0,#f97316 1px,transparent 1px,transparent 48px); }
+        .client-card-glow { position: absolute; bottom: -20%; right: -10%; width: 240px; height: 240px; background: radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%); border-radius: 50%; }
+        .client-card-logo-wrap { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 1.5rem 2.5rem; min-width: 180px; min-height: 100px; }
+        .client-card-logo { max-height: 70px; max-width: 200px; width: auto; object-fit: contain; filter: brightness(1.1); }
+        .client-card-name-fallback { font-size: 2rem; font-weight: 800; color: #fff; letter-spacing: 0.06em; }
+        .client-card-stat-box { position: relative; z-index: 1; text-align: center; }
+        .client-card-stat-box strong { display: block; font-size: 2rem; font-weight: 800; color: #fb923c; line-height: 1; }
+        .client-card-stat-box span { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: #bfdbfe; }
+        .client-card-sector { position: relative; z-index: 1; padding: 0.3rem 0.85rem; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3); border-radius: 999px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #fdba74; }
+
+        /* Content panel */
+        .client-card-content { padding: 2.5rem; display: flex; flex-direction: column; gap: 1.25rem; justify-content: center; }
+        .client-card-tagline { font-size: 1.15rem; font-style: italic; color: #1e3a8a; line-height: 1.55; margin: 0; font-weight: 500; }
+        .client-card-desc { font-size: 0.85rem; color: #4b5563; line-height: 1.8; margin: 0; }
+        .client-card-result {
+          display: flex; gap: 0.75rem; align-items: flex-start;
+          padding: 0.9rem 1.1rem; background: #f3f4f6;
+          border-left: 3px solid #f97316; border-radius: 0 10px 10px 0;
+        }
+        .client-card-result-dot { width: 8px; height: 8px; background: #f97316; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+        .client-card-result p { font-size: 0.8rem; color: #374151; line-height: 1.6; margin: 0; }
+        .client-card-result strong { color: #1e3a8a; }
+        .client-card-services-label { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #9ca3af; margin: 0 0 0.6rem; }
+        .client-card-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+        .client-tag { padding: 0.3rem 0.8rem; background: #f3f4f6; border: 1px solid rgba(30,64,175,0.12); border-radius: 999px; font-size: 0.7rem; color: #1e40af; transition: all 0.2s; }
+        .client-tag:hover { background: rgba(249,115,22,0.07); border-color: rgba(249,115,22,0.35); color: #1e3a8a; }
+
+        @media (max-width: 860px) {
+          .client-card { grid-template-columns: 1fr; }
+          .client-card-flipped { direction: ltr; }
+          .client-card-visual { min-height: 220px; padding: 2rem; }
+        }
+
+        /* ── Why section (dark) ── */
+        .cp-why { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); padding: 5rem 2rem; }
+        .cp-why-inner { max-width: 1200px; margin: 0 auto; }
+        .cp-why-head { text-align: center; margin-bottom: 3rem; }
+        .cp-why-badge { display: inline-block; padding: 0.38rem 1.2rem; border: 1px solid rgba(249,115,22,0.35); border-radius: 999px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #fdba74; background: rgba(249,115,22,0.08); margin-bottom: 1.25rem; }
+        .cp-why-head h2 { font-size: clamp(1.8rem,3.5vw,2.6rem); font-weight: 700; color: #fff; margin-bottom: 0; }
+        .cp-why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
+        .cp-why-card {
+          padding: 1.75rem 1.6rem; background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+          transition: all 0.3s;
+        }
+        .cp-why-card:hover { border-color: rgba(249,115,22,0.4); background: rgba(255,255,255,0.1); transform: translateY(-4px); }
+        .cp-why-icon { font-size: 1.75rem; margin-bottom: 0.85rem; }
+        .cp-why-card h3 { font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.55rem; }
+        .cp-why-card p { font-size: 0.8rem; color: #93c5fd; line-height: 1.65; margin: 0; }
+
+        /* ── Industries ── */
+        .cp-industries { background: #fff; border-top: 1px solid rgba(30,64,175,0.08); padding: 3.5rem 2rem; }
+        .cp-industries-inner { max-width: 960px; margin: 0 auto; text-align: center; }
+        .cp-industries-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #9ca3af; margin-bottom: 1.5rem; }
+        .cp-tags-wrap { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; }
+        .cp-tag { padding: 0.5rem 1.1rem; background: #f3f4f6; border: 1px solid rgba(30,64,175,0.1); border-radius: 999px; font-size: 0.78rem; color: #1e40af; transition: all 0.2s; cursor: default; }
+        .cp-tag:hover { border-color: rgba(249,115,22,0.4); color: #1e3a8a; background: rgba(249,115,22,0.06); }
+
+        /* ── CTA ── */
+        .cp-cta { position: relative; padding: 5.5rem 2rem; text-align: center; overflow: hidden; background: #1e3a8a; }
+        .cp-cta-glow { position: absolute; inset: 0; background-image: radial-gradient(circle at 25% 50%, rgba(249,115,22,0.12) 0%, transparent 55%), radial-gradient(circle at 75% 50%, rgba(30,64,175,0.5) 0%, transparent 55%); }
+        .cp-cta-inner { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; }
+        .cp-cta h2 { font-size: clamp(1.9rem,4vw,2.9rem); font-weight: 800; color: #fff; margin-bottom: 1rem; line-height: 1.2; }
+        .cp-cta p { font-size: 0.95rem; color: #bfdbfe; line-height: 1.75; margin-bottom: 2.25rem; }
+        .cp-cta-btns { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
+        .btn-primary { padding: 0.9rem 2.25rem; background: #f97316; color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; border-radius: 8px; transition: all 0.25s; display: inline-block; }
+        .btn-primary:hover { background: #ea6c0a; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(249,115,22,0.35); }
+        .btn-outline { padding: 0.9rem 2.25rem; border: 1px solid rgba(191,219,254,0.4); color: #bfdbfe; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; border-radius: 8px; transition: all 0.25s; background: transparent; display: inline-block; }
+        .btn-outline:hover { border-color: #f97316; color: #fff; }
+      `}</style>
+
+      {/* ── HERO ── */}
+      <section className="cp-hero">
+        <div className="cp-hero-grid" />
+        <div className="cp-hero-glow" />
+        <Reveal>
+          <div className="cp-hero-inner">
+            <div className="cp-hero-badge">Our Clients</div>
+            <h1>Organizations That <span>Trust</span> Nixol</h1>
+            <p className="cp-hero-sub">
+              We are proud to partner with organizations committed to operational excellence, financial clarity, and long-term strategic growth.
+            </p>
+          </div>
+        </Reveal>
       </section>
 
-      {/* ── Logo Strip (white) ── */}
-      <section style={{ background: white, borderBottom: '1px solid rgba(13,33,68,0.08)', padding: '2.5rem 1.75rem' }}>
+      {/* ── LOGO STRIP ── */}
+      <section className="cp-logo-strip">
         <Reveal>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.58rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: t400, textAlign: 'center', marginBottom: '1.75rem' }}>
-            Trusted Partners
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', justifyContent: 'center', alignItems: 'center' }}>
+          <p className="cp-logo-strip-label">Trusted Partners</p>
+          <div className="cp-logo-strip-logos">
             {CLIENTS.map(({ name, logo }) => (
-              <div key={name} style={{
-                padding: '1.1rem 2rem', background: '#f0f5ff',
-                border: '1px solid rgba(13,33,68,0.1)', borderRadius: '12px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                minWidth: '150px', minHeight: '70px',
-                transition: 'all 0.3s', boxShadow: '0 2px 8px rgba(13,33,68,0.05)',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = gold; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(13,33,68,0.1)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(13,33,68,0.1)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(13,33,68,0.05)' }}
-              >
+              <div key={name} className="cp-logo-pill">
                 <img src={logo} alt={name}
-                  style={{ maxHeight: '44px', maxWidth: '120px', width: 'auto', objectFit: 'contain' }}
                   onError={e => {
                     e.target.style.display = 'none'
                     const el = document.createElement('span')
-                    el.style.cssText = `font-family:Georgia,serif;font-size:1.1rem;font-weight:700;color:${navy};letter-spacing:0.06em`
+                    el.style.cssText = 'font-size:1rem;font-weight:800;color:#1e3a8a;letter-spacing:0.05em'
                     el.textContent = name
                     e.target.parentElement.appendChild(el)
                   }} />
@@ -242,110 +307,69 @@ export default function ClientsPage() {
         </Reveal>
       </section>
 
-      {/* ── Client Cards (light) ── */}
-      <section style={{ padding: mobile ? '3rem 1.25rem' : '5rem 1.75rem', maxWidth: '1100px', margin: '0 auto' }}>
-        <Reveal style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <Badge text="Client Stories" />
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 600, color: t900, marginBottom: '0.75rem' }}>
-            The Work We Do Together
-          </h2>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: t500, maxWidth: '520px', margin: '0 auto', lineHeight: 1.7 }}>
-            Every engagement is built around your unique goals. Here's a look at two of the organizations we proudly serve.
-          </p>
+      {/* ── CLIENT CARDS ── */}
+      <section className="cp-section">
+        <Reveal>
+          <div className="cp-section-head">
+            <div className="cp-section-badge">Client Stories</div>
+            <h2>The Work We Do Together</h2>
+            <div className="cp-divider" />
+            <p>Every engagement is built around your unique goals. Here's a look at two of the organizations we proudly serve.</p>
+          </div>
         </Reveal>
-
-        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(2, 1fr)', gap: '2rem', alignItems: 'start' }}>
+        <div className="cp-clients-list">
           {CLIENTS.map((client, i) => (
-            <ClientCard key={client.name} client={client} delay={i * 120} />
+            <ClientCard key={client.name} client={client} delay={i * 100} flipped={i % 2 === 1} />
           ))}
         </div>
       </section>
 
-      {/* ── Why Clients Choose Nixol (blue-tinted light) ── */}
-      <section style={{ padding: mobile ? '3rem 1.25rem' : '5rem 1.75rem', background: '#f0f5ff' }}>
-        <Reveal style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <Badge text="Why They Choose Us" />
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 600, color: t900 }}>
-              What Sets Nixol Apart
-            </h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: '1.25rem' }}>
+      {/* ── WHY NIXOL (dark) ── */}
+      <section className="cp-why">
+        <div className="cp-why-inner">
+          <Reveal>
+            <div className="cp-why-head">
+              <div className="cp-why-badge">Why They Choose Us</div>
+              <h2>What Sets Nixol Apart</h2>
+            </div>
+          </Reveal>
+          <div className="cp-why-grid">
             {WHY.map(({ icon, label, desc }, i) => (
               <Reveal key={label} delay={i * 80}>
-                <div style={{
-                  padding: '1.75rem 1.5rem', background: white,
-                  border: '1px solid rgba(13,33,68,0.08)', borderRadius: '14px',
-                  transition: 'all 0.3s', height: '100%',
-                  boxShadow: '0 2px 10px rgba(13,33,68,0.05)',
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(13,33,68,0.1)' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(13,33,68,0.08)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(13,33,68,0.05)' }}>
-                  <div style={{ fontSize: '1.75rem', marginBottom: '0.85rem' }}>{icon}</div>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: t900, marginBottom: '0.6rem' }}>{label}</h3>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', color: t500, lineHeight: 1.65, margin: 0 }}>{desc}</p>
+                <div className="cp-why-card">
+                  <div className="cp-why-icon">{icon}</div>
+                  <h3>{label}</h3>
+                  <p>{desc}</p>
                 </div>
               </Reveal>
             ))}
           </div>
-        </Reveal>
+        </div>
       </section>
 
-      {/* ── Industries (white) ── */}
-      <section style={{ padding: mobile ? '3rem 1.25rem' : '4rem 1.75rem', background: white, borderTop: '1px solid rgba(13,33,68,0.07)' }}>
-        <Reveal style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: t400, marginBottom: '1.5rem' }}>
-            Industries We Serve
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center' }}>
-            {INDUSTRIES.map(ind => (
-              <span key={ind} style={{
-                padding: '0.5rem 1.1rem', background: '#f8faff',
-                border: '1px solid rgba(13,33,68,0.1)', borderRadius: '999px',
-                fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: t700,
-                transition: 'all 0.2s', cursor: 'default',
-                boxShadow: '0 1px 4px rgba(13,33,68,0.04)',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = gold; e.currentTarget.style.color = navy; e.currentTarget.style.background = 'rgba(201,168,76,0.06)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(13,33,68,0.1)'; e.currentTarget.style.color = t700; e.currentTarget.style.background = '#f8faff' }}>
-                {ind}
-              </span>
-            ))}
+      {/* ── INDUSTRIES ── */}
+      <section className="cp-industries">
+        <Reveal>
+          <div className="cp-industries-inner">
+            <p className="cp-industries-label">Industries We Serve</p>
+            <div className="cp-tags-wrap">
+              {INDUSTRIES.map(ind => <span key={ind} className="cp-tag">{ind}</span>)}
+            </div>
           </div>
         </Reveal>
       </section>
 
-      {/* ── CTA (dark navy) ── */}
-      <section style={{ padding: mobile ? '3.5rem 1.25rem' : '5rem 1.75rem', background: navy, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 25% 50%, rgba(201,168,76,0.1) 0%, transparent 55%), radial-gradient(circle at 75% 50%, rgba(26,58,107,0.4) 0%, transparent 55%)' }} />
-        <Reveal style={{ position: 'relative', zIndex: 10, maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem,3.5vw,2.6rem)', fontWeight: 600, color: white, marginBottom: '1rem', lineHeight: 1.2 }}>
-            Ready to Join Our Client Family?
-          </h2>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#B0BCCC', lineHeight: 1.75, marginBottom: '2.25rem' }}>
-            Let's explore how Nixol can help your organization operate smarter, grow stronger, and achieve its strategic goals.
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
-            <Link to="/booking" style={{
-              padding: '0.9rem 2.25rem', background: gold, color: navy,
-              fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700,
-              letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
-              borderRadius: '7px', transition: 'all 0.25s', display: 'inline-block',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#d4b86a'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(201,168,76,0.35)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = gold; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
-              Book a Consultation
-            </Link>
-            <Link to="/contact" style={{
-              padding: '0.9rem 2.25rem', border: '1px solid rgba(201,168,76,0.35)',
-              color: '#D4DCE8', fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600,
-              letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none',
-              borderRadius: '7px', transition: 'all 0.25s', background: 'transparent', display: 'inline-block',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = gold; e.currentTarget.style.color = white }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)'; e.currentTarget.style.color = '#D4DCE8' }}>
-              Get In Touch
-            </Link>
+      {/* ── CTA ── */}
+      <section className="cp-cta">
+        <div className="cp-cta-glow" />
+        <Reveal>
+          <div className="cp-cta-inner">
+            <h2>Ready to Join Our Client Family?</h2>
+            <p>Let's explore how Nixol can help your organization operate smarter, grow stronger, and achieve its strategic goals.</p>
+            <div className="cp-cta-btns">
+              <Link to="/booking" className="btn-primary">Book a Consultation</Link>
+              <Link to="/contact" className="btn-outline">Get In Touch</Link>
+            </div>
           </div>
         </Reveal>
       </section>

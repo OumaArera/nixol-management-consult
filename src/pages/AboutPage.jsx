@@ -1,16 +1,29 @@
 import { useRef, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-const gold  = '#C9A84C'
-const navy  = '#0d2144'
-const navy2 = '#1a3a6b'
-const white = '#ffffff'
-const t700  = '#2d4a7a'
-const t500  = '#4a6fa5'
-const t400  = '#7a9bc4'
+function useReveal() {
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current; if (!el) return
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { el.classList.add('revealed'); obs.disconnect() }
+    }, { threshold: 0.1 })
+    obs.observe(el); return () => obs.disconnect()
+  }, [])
+  return ref
+}
+
+function Reveal({ children, className = '', delay = 0 }) {
+  const ref = useReveal()
+  return (
+    <div ref={ref} className={`reveal-block ${className}`} style={{ '--delay': `${delay}ms` }}>
+      {children}
+    </div>
+  )
+}
 
 function useMobile() {
-  const [mobile, setMobile] = useState(window.innerWidth < 768)
+  const [mobile, setMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false)
   useEffect(() => {
     const fn = () => setMobile(window.innerWidth < 768)
     window.addEventListener('resize', fn)
@@ -19,51 +32,22 @@ function useMobile() {
   return mobile
 }
 
-function useReveal() {
-  const ref = useRef(null)
-  useEffect(() => {
-    const el = ref.current; if (!el) return
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; obs.disconnect() }
-    }, { threshold: 0.1 })
-    obs.observe(el); return () => obs.disconnect()
-  }, [])
-  return ref
-}
-
-function Reveal({ children, style = {}, delay = 0 }) {
-  const ref = useReveal()
-  return (
-    <div ref={ref} style={{ opacity: 0, transform: 'translateY(24px)', transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`, ...style }}>
-      {children}
-    </div>
-  )
-}
-
-// ── Team — includes David as Healthcare Partner ────────────────────────────────
 const TEAM = [
   { name: 'Kwaku Duah Junior',      role: 'Chief Executive Officer',   img: '/kwaku.png',    initials: 'KD' },
   { name: 'Elizabeth Henry Awudi',  role: 'Managing Partner',           img: '/elizabeth.png', initials: 'EA', suffix: 'PharmD' },
   { name: 'Dr. Eric Nsiah Gyabaah', role: 'Managing Partner',           img: '/eric.png',     initials: 'EN' },
+  { name: 'David Obuya',             role: 'Managing Partner',       img: '/DavidOmond.png',    initials: 'OO' },
   { name: 'Gabriel Acquah',         role: 'Director of Operations',     img: '/gabriel.png',  initials: 'GA' },
   { name: 'Owusu Osei',             role: 'Director of Projects',       img: '/owusu.png',    initials: 'OO' },
 ]
 
-const HEALTHCARE_PARTNER = {
-  name: 'David Boamah-Oduro',
-  role: 'Healthcare Consulting Partner',
-  img: '/david.jpeg',
-  initials: 'DV',
-  phone: '+233 24 909 9740',
-  note: 'Credentials & full profile coming soon.',
-}
 
 const PILLARS = [
   { icon: '🤝', label: 'Professional Stewardship', desc: 'We protect client interests with confidentiality, respect, and responsibility.' },
   { icon: '⚖️', label: 'Integrity',                desc: 'We act with honesty, transparency, and ethical discipline in every engagement.' },
   { icon: '💡', label: 'Innovation',               desc: 'We apply insight, data, and modern tools to create smarter solutions.' },
-  { icon: '🎯', label: 'Accountability',           desc: 'We take ownership of our work, decisions, and the outcomes we deliver.' },
-  { icon: '🌐', label: 'Client Partnership',       desc: "We collaborate closely and tailor our support to each client's unique needs." },
+  { icon: '🎯', label: 'Accountability',            desc: 'We take ownership of our work, decisions, and the outcomes we deliver.' },
+  { icon: '🌐', label: 'Client Partnership',        desc: "We collaborate closely and tailor our support to each client's unique needs." },
 ]
 
 const APPROACH = [
@@ -82,62 +66,27 @@ const WHY = [
   'A commitment to integrity, excellence, and long-term partnership',
 ]
 
-const Badge = ({ text, dark = false }) => (
-  <span style={{
-    display: 'inline-block', padding: '0.35rem 1.1rem',
-    border: `1px solid ${dark ? 'rgba(201,168,76,0.3)' : 'rgba(13,33,68,0.15)'}`,
-    borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem',
-    fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase',
-    color: dark ? gold : t700, marginBottom: '1.25rem',
-    background: dark ? 'rgba(201,168,76,0.06)' : 'rgba(13,33,68,0.04)',
-  }}>
-    {text}
-  </span>
-)
-
 function TeamCard({ name, role, img, initials, suffix, phone, note, delay, highlight }) {
   const ref = useReveal()
   return (
-    <div ref={ref} style={{ opacity: 0, transform: 'translateY(24px)', transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms` }}>
-      <div style={{
-        background: white,
-        border: `1px solid ${highlight ? 'rgba(201,168,76,0.4)' : 'rgba(13,33,68,0.1)'}`,
-        borderRadius: '16px', overflow: 'hidden', transition: 'all 0.3s',
-        boxShadow: highlight ? '0 4px 20px rgba(201,168,76,0.1)' : '0 2px 10px rgba(13,33,68,0.06)',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(13,33,68,0.12)' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = highlight ? 'rgba(201,168,76,0.4)' : 'rgba(13,33,68,0.1)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = highlight ? '0 4px 20px rgba(201,168,76,0.1)' : '0 2px 10px rgba(13,33,68,0.06)' }}
-      >
-        <div style={{ height: '190px', background: 'linear-gradient(135deg, #eef2fb, #dde6f5)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
-          {highlight && (
-            <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', padding: '0.2rem 0.65rem', background: gold, color: navy, borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              Partner
-            </div>
-          )}
-          <img src={img} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+    <div ref={ref} className="reveal-block" style={{ '--delay': `${delay}ms` }}>
+      <div className={`nx-team-card ${highlight ? 'nx-team-card--highlight' : ''}`}>
+        <div className="nx-team-img-wrap">
+          {highlight && <span className="nx-partner-badge">Partner</span>}
+          <img src={img} alt={name}
             onError={e => {
               e.target.style.display = 'none'
               const fb = document.createElement('div')
-              fb.style.cssText = `width:80px;height:80px;border-radius:50%;background:rgba(13,33,68,0.08);border:2px solid ${gold};display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:1.5rem;font-weight:600;color:${gold};`
+              fb.className = 'nx-team-initials'
               fb.textContent = initials
               e.target.parentElement.appendChild(fb)
             }} />
         </div>
-        <div style={{ padding: '1.25rem 1.5rem' }}>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 600, color: navy, marginBottom: '0.2rem', lineHeight: 1.3 }}>
-            {name}{suffix ? `, ${suffix}` : ''}
-          </h3>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.63rem', fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: gold, margin: 0 }}>
-            {role}
-          </p>
-          {phone && (
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: t500, margin: '0.5rem 0 0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span>📞</span> {phone}
-            </p>
-          )}
-          {note && (
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.7rem', color: t400, margin: '0.4rem 0 0', fontStyle: 'italic' }}>{note}</p>
-          )}
+        <div className="nx-team-body">
+          <h3 className="nx-team-name">{name}{suffix ? `, ${suffix}` : ''}</h3>
+          <p className="nx-team-role">{role}</p>
+          {phone && <p className="nx-team-phone">📞 {phone}</p>}
+          {note  && <p className="nx-team-note">{note}</p>}
         </div>
       </div>
     </div>
@@ -148,47 +97,124 @@ export default function AboutPage() {
   const mobile = useMobile()
 
   return (
-    <main style={{ paddingTop: '4rem', minHeight: '100vh', background: '#f8faff' }}>
+    <main style={{ paddingTop: '4rem', minHeight: '100vh', background: '#f9fafb' }}>
+      <style>{`
+        .reveal-block { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease var(--delay,0ms), transform 0.7s ease var(--delay,0ms); }
+        .reveal-block.revealed { opacity: 1; transform: translateY(0); }
 
-      {/* ── Header (dark) ── */}
-      <section style={{ position: 'relative', padding: mobile ? '3rem 1.25rem 2rem' : '4rem 1.75rem 3rem', textAlign: 'center', overflow: 'hidden', background: '#0d2144' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 50% 70%, rgba(201,168,76,0.07) 0%, transparent 65%)' }} />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: '680px', margin: '0 auto' }}>
-          <Badge text="Our Story" dark />
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,5vw,3.8rem)', fontWeight: 700, color: '#fff', marginBottom: '1rem', lineHeight: 1.1 }}>
-            About Nixol
-          </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.92rem', color: '#B0BCCC', lineHeight: 1.75 }}>
-            A strategic advisory and financial management firm helping organizations strengthen performance, improve operational efficiency, and make smarter business decisions.
-          </p>
+        /* hero */
+        .nx-about-hero { position: relative; padding: ${mobile ? '3rem 1.25rem 2rem' : '4rem 1.75rem 3rem'}; text-align: center; overflow: hidden; background: linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%); }
+        .nx-about-hero-glow { position: absolute; inset: 0; background-image: radial-gradient(circle at 50% 70%, rgba(249,115,22,0.08) 0%, transparent 65%); }
+        .nx-about-hero-inner { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; }
+        .nx-badge { display: inline-block; padding: 0.35rem 1.1rem; border: 1px solid rgba(249,115,22,0.4); border-radius: 999px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #fdba74; margin-bottom: 1.25rem; background: rgba(249,115,22,0.08); }
+        .nx-badge--light { border-color: rgba(30,64,175,0.2); color: #1e40af; background: rgba(30,64,175,0.06); }
+        .nx-about-hero h1 { font-size: clamp(2rem,5vw,3.6rem); font-weight: 800; color: #fff; margin-bottom: 1rem; line-height: 1.1; }
+        .nx-about-hero p  { font-size: 0.92rem; color: #bfdbfe; line-height: 1.75; }
+
+        /* who we are */
+        .nx-who { padding: ${mobile ? '2.5rem 1.25rem' : '4.5rem 1.75rem'}; background: #fff; }
+        .nx-who-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: ${mobile ? '1fr' : '1fr 1fr'}; gap: ${mobile ? '2rem' : '4rem'}; align-items: center; }
+        .nx-who h2 { font-size: clamp(1.7rem,3vw,2.4rem); font-weight: 800; color: #1e3a8a; line-height: 1.2; margin-bottom: 1.25rem; }
+        .nx-who p  { font-size: 0.88rem; color: #374151; line-height: 1.8; margin-bottom: 1rem; }
+        .nx-mv-card { padding: 1.5rem; background: #f3f4f6; border-left: 4px solid #f97316; border-radius: 0 12px 12px 0; margin-bottom: 1.25rem; }
+        .nx-mv-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #f97316; margin-bottom: 0.6rem; }
+        .nx-mv-text  { font-size: 1rem; font-style: italic; color: #1e3a8a; line-height: 1.6; margin: 0; }
+
+        /* values */
+        .nx-corevals { padding: ${mobile ? '2.5rem 1.25rem' : '5rem 1.75rem'}; background: #f3f4f6; }
+        .nx-corevals-inner { max-width: 1280px; margin: 0 auto; }
+        .nx-section-head { text-align: center; margin-bottom: 2.5rem; }
+        .nx-section-head h2 { font-size: clamp(1.7rem,3.5vw,2.4rem); font-weight: 800; color: #1e3a8a; }
+        .nx-divider { width: 96px; height: 4px; background: #f97316; border-radius: 2px; margin: 1rem auto; }
+        .nx-pillars-grid { display: grid; grid-template-columns: ${mobile ? '1fr 1fr' : 'repeat(5,1fr)'}; gap: 1rem; }
+        .nx-pillar-card { padding: 1.5rem 1.25rem; background: #fff; border: 1px solid rgba(30,64,175,0.1); border-radius: 16px; text-align: center; transition: all 0.3s; box-shadow: 0 2px 8px rgba(30,58,138,0.05); }
+        .nx-pillar-card:hover { border-color: rgba(249,115,22,0.45); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(30,58,138,0.1); }
+        .nx-pillar-icon { font-size: 1.75rem; margin-bottom: 0.85rem; }
+        .nx-pillar-card h3 { font-size: 1rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.5rem; }
+        .nx-pillar-card p  { font-size: 0.75rem; color: #4b5563; line-height: 1.6; margin: 0; }
+
+        /* team */
+        .nx-leadership { padding: ${mobile ? '2.5rem 1.25rem' : '5rem 1.75rem'}; background: #fff; }
+        .nx-leadership-inner { max-width: 1280px; margin: 0 auto; }
+        .nx-team-grid { display: grid; grid-template-columns: ${mobile ? '1fr 1fr' : 'repeat(5,1fr)'}; gap: ${mobile ? '1rem' : '1.5rem'}; }
+        .nx-team-card { background: #fff; border: 1px solid rgba(30,64,175,0.1); border-radius: 16px; overflow: hidden; transition: all 0.3s; box-shadow: 0 2px 10px rgba(30,58,138,0.06); }
+        .nx-team-card:hover { border-color: rgba(249,115,22,0.45); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(30,58,138,0.12); }
+        .nx-team-card--highlight { border-color: rgba(249,115,22,0.35); box-shadow: 0 4px 20px rgba(249,115,22,0.1); }
+        .nx-team-img-wrap { height: 190px; background: linear-gradient(135deg,#eff6ff,#dbeafe); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .nx-team-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+        .nx-partner-badge { position: absolute; top: 0.75rem; right: 0.75rem; padding: 0.2rem 0.65rem; background: #f97316; color: #fff; border-radius: 999px; font-size: 0.55rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+        .nx-team-initials { width: 80px; height: 80px; border-radius: 50%; background: rgba(30,64,175,0.08); border: 2px solid #f97316; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #1e40af; }
+        .nx-team-body { padding: 1.25rem 1.5rem; }
+        .nx-team-name { font-size: 1.05rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.2rem; line-height: 1.3; }
+        .nx-team-role { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #f97316; margin: 0; }
+        .nx-team-phone { font-size: 0.75rem; color: #4b5563; margin: 0.5rem 0 0; }
+        .nx-team-note  { font-size: 0.7rem; color: #6b7280; margin: 0.4rem 0 0; font-style: italic; }
+
+        /* healthcare */
+        .nx-health { padding: ${mobile ? '2.5rem 1.25rem' : '4rem 1.75rem'}; background: linear-gradient(135deg,#eff6ff,#dbeafe); }
+        .nx-health-inner { max-width: 900px; margin: 0 auto; }
+        .nx-health-head { text-align: center; margin-bottom: 2.5rem; }
+        .nx-health-head h2 { font-size: clamp(1.7rem,3.5vw,2.4rem); font-weight: 800; color: #1e3a8a; margin-bottom: 0.75rem; }
+        .nx-health-head p  { font-size: 0.88rem; color: #374151; max-width: 600px; margin: 0 auto; line-height: 1.75; }
+        .nx-health-link { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #1e3a8a; text-decoration: none; border-bottom: 2px solid #f97316; padding-bottom: 2px; transition: color 0.2s; }
+        .nx-health-link:hover { color: #f97316; }
+
+        /* approach */
+        .nx-approach { padding: ${mobile ? '2.5rem 1.25rem' : '5rem 1.75rem'}; background: #1e3a8a; }
+        .nx-approach-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: ${mobile ? '1fr' : '1fr 1fr'}; gap: ${mobile ? '2rem' : '4rem'}; align-items: start; }
+        .nx-approach h2   { font-size: clamp(1.7rem,3vw,2.4rem); font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 1rem; }
+        .nx-approach p.sub { font-size: 0.88rem; color: #bfdbfe; line-height: 1.8; margin-bottom: 1.5rem; }
+        .nx-approach-item { display: flex; gap: 0.85rem; align-items: flex-start; margin-bottom: 0.85rem; }
+        .nx-approach-dot  { width: 6px; height: 6px; border-radius: 50%; background: #f97316; flex-shrink: 0; margin-top: 7px; }
+        .nx-approach-item p { font-size: 0.85rem; color: #bfdbfe; margin: 0; line-height: 1.6; }
+        .nx-approach-item strong { color: #fff; font-weight: 700; }
+        .nx-why-box { padding: ${mobile ? '1.75rem' : '2.5rem'}; background: rgba(255,255,255,0.06); border: 1px solid rgba(249,115,22,0.2); border-radius: 20px; }
+        .nx-why-box h3 { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 1.25rem; }
+        .nx-why-item { display: flex; gap: 0.85rem; align-items: flex-start; margin-bottom: 0.85rem; }
+        .nx-why-check { color: #f97316; font-size: 0.85rem; flex-shrink: 0; margin-top: 2px; font-weight: 700; }
+        .nx-why-item p { font-size: 0.82rem; color: #bfdbfe; margin: 0; line-height: 1.6; }
+        .nx-ein-block { margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid rgba(249,115,22,0.2); }
+        .nx-ein-label { font-size: 0.65rem; color: #93c5fd; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.3rem; }
+        .nx-ein-val   { font-size: 1.2rem; color: #fb923c; font-weight: 700; letter-spacing: 0.05em; }
+
+        /* cta */
+        .nx-cta-light { padding: ${mobile ? '3rem 1.25rem' : '4rem 1.75rem'}; text-align: center; background: #f3f4f6; border-top: 1px solid rgba(30,64,175,0.08); }
+        .nx-cta-light h2 { font-size: clamp(1.5rem,3vw,2.4rem); font-weight: 800; color: #1e3a8a; margin-bottom: 0.85rem; }
+        .nx-cta-light p  { font-size: 0.88rem; color: #4b5563; margin-bottom: 2rem; line-height: 1.7; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .btn-blue { display: inline-block; padding: 0.9rem 2.25rem; background: #1e3a8a; color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; border-radius: 8px; transition: all 0.25s; }
+        .btn-blue:hover { background: #f97316; color: #fff; transform: translateY(-2px); }
+      `}</style>
+
+      {/* Hero */}
+      <section className="nx-about-hero">
+        <div className="nx-about-hero-glow" />
+        <div className="nx-about-hero-inner">
+          <span className="nx-badge">Our Story</span>
+          <h1>About Nixol</h1>
+          <p>A strategic advisory and financial management firm helping organizations strengthen performance, improve operational efficiency, and make smarter business decisions.</p>
         </div>
       </section>
 
-      {/* ── Who We Are (light) ── */}
-      <section style={{ padding: mobile ? '2.5rem 1.25rem' : '4.5rem 1.75rem', background: white }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? '2rem' : '4rem', alignItems: 'center' }}>
+      {/* Who We Are */}
+      <section className="nx-who">
+        <div className="nx-who-grid">
           <Reveal>
-            <Badge text="Who We Are" />
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.7rem,3vw,2.6rem)', fontWeight: 600, color: navy, lineHeight: 1.2, marginBottom: '1.25rem' }}>
-              Expertise. Integrity. Results.
-            </h2>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: t700, lineHeight: 1.8, marginBottom: '1rem' }}>
-              Nixol Management & Consult is a strategic advisory and financial management firm helping organizations strengthen performance, improve operational efficiency, and make smarter business decisions.
-            </p>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: t500, lineHeight: 1.8 }}>
-              The firm blends deep financial and managerial expertise with practical business insight to deliver solutions that create measurable, long-term value — including specialist healthcare consulting through our partnership with David.
-            </p>
+            <div>
+              <span className="nx-badge nx-badge--light">Who We Are</span>
+              <h2>Expertise. Integrity. Results.</h2>
+              <p>Nixol Management & Consult is a strategic advisory and financial management firm helping organizations strengthen performance, improve operational efficiency, and make smarter business decisions.</p>
+              <p style={{ color: '#6b7280' }}>The firm blends deep financial and managerial expertise with practical business insight to deliver solutions that create measurable, long-term value — including specialist healthcare consulting through our partnership with David.</p>
+            </div>
           </Reveal>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div>
             {[
               { label: 'Our Mission', text: 'To empower organizations with strategic financial intelligence, operational excellence, and tailored advisory solutions that drive long-term value creation.' },
               { label: 'Our Vision',  text: 'To become a trusted partner for businesses seeking clarity, efficiency, and strategic direction in an increasingly complex operating environment.' },
             ].map(({ label, text }, i) => (
               <Reveal key={label} delay={i * 120}>
-                <div style={{ padding: '1.5rem', background: '#f0f5ff', border: '1px solid rgba(13,33,68,0.08)', borderLeft: `3px solid ${gold}`, borderRadius: '0 12px 12px 0' }}>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: gold, marginBottom: '0.6rem' }}>{label}</p>
-                  <p style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontStyle: 'italic', color: navy, lineHeight: 1.6, margin: 0 }}>{text}</p>
+                <div className="nx-mv-card">
+                  <p className="nx-mv-label">{label}</p>
+                  <p className="nx-mv-text">{text}</p>
                 </div>
               </Reveal>
             ))}
@@ -196,42 +222,42 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Core Values (light bg) ── */}
-      <section style={{ padding: mobile ? '2.5rem 1.25rem' : '5rem 1.75rem', background: '#f0f5ff' }}>
-        <Reveal style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <Badge text="Core Values" />
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.7rem,3.5vw,2.6rem)', fontWeight: 600, color: navy }}>What Drives Us</h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(5, 1fr)', gap: '1rem' }}>
-            {PILLARS.map(({ icon, label, desc }, i) => (
-              <Reveal key={label} delay={i * 70}>
-                <div style={{ padding: '1.5rem 1.25rem', background: white, border: '1px solid rgba(13,33,68,0.08)', borderRadius: '14px', textAlign: 'center', transition: 'all 0.3s', height: '100%', boxShadow: '0 2px 8px rgba(13,33,68,0.05)' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(13,33,68,0.1)' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(13,33,68,0.08)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(13,33,68,0.05)' }}>
-                  <div style={{ fontSize: '1.75rem', marginBottom: '0.85rem' }}>{icon}</div>
-                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 600, color: navy, marginBottom: '0.5rem' }}>{label}</h3>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: t500, lineHeight: 1.6, margin: 0 }}>{desc}</p>
+      {/* Core Values */}
+      <section className="nx-corevals">
+        <div className="nx-corevals-inner">
+          <Reveal>
+            <div className="nx-section-head">
+              <h2>What Drives Us</h2>
+              <div className="nx-divider" />
+            </div>
+          </Reveal>
+          <div className="nx-pillars-grid">
+            {PILLARS.map((p, i) => (
+              <Reveal key={p.label} delay={i * 70}>
+                <div className="nx-pillar-card">
+                  <div className="nx-pillar-icon">{p.icon}</div>
+                  <h3>{p.label}</h3>
+                  <p>{p.desc}</p>
                 </div>
               </Reveal>
             ))}
           </div>
-        </Reveal>
+        </div>
       </section>
 
-      {/* ── Nixol Leadership (white) ── */}
-      <section style={{ padding: mobile ? '2.5rem 1.25rem' : '5rem 1.75rem', background: white }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <Reveal style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <Badge text="Leadership" />
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.7rem,3.5vw,2.6rem)', fontWeight: 600, color: navy, marginBottom: '0.75rem' }}>
-              The Nixol Team
-            </h2>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: t500, maxWidth: '550px', margin: '0 auto', lineHeight: 1.7 }}>
-              Experienced finance and business advisory professionals with a track record of delivering strategic insights across diverse industries.
-            </p>
+      {/* Leadership */}
+      <section className="nx-leadership">
+        <div className="nx-leadership-inner">
+          <Reveal>
+            <div className="nx-section-head">
+              <h2>The Nixol Team</h2>
+              <div className="nx-divider" />
+              <p style={{ fontSize: '0.88rem', color: '#4b5563', maxWidth: '550px', margin: '0 auto', lineHeight: 1.7 }}>
+                Experienced finance and business advisory professionals with a track record of delivering strategic insights across diverse industries.
+              </p>
+            </div>
           </Reveal>
-          <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(5, 1fr)', gap: mobile ? '1rem' : '1.5rem' }}>
+          <div className="nx-team-grid">
             {TEAM.map((member, i) => (
               <TeamCard key={member.name} {...member} delay={i * 80} />
             ))}
@@ -239,102 +265,65 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Healthcare Partner (gold accent section) ── */}
-      <section style={{ padding: mobile ? '2.5rem 1.25rem' : '4rem 1.75rem', background: 'linear-gradient(135deg, #f0f5ff, #e8f0fa)' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <Reveal style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <span style={{ display: 'inline-block', padding: '0.35rem 1.1rem', border: '1px solid rgba(201,168,76,0.4)', borderRadius: '999px', fontFamily: 'var(--font-body)', fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: gold, marginBottom: '1rem', background: 'rgba(201,168,76,0.06)' }}>
-              🏥 Healthcare Partnership
-            </span>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.7rem,3.5vw,2.4rem)', fontWeight: 600, color: navy, marginBottom: '0.75rem' }}>
-              Expanding Into Healthcare Consulting
-            </h2>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: t700, maxWidth: '600px', margin: '0 auto', lineHeight: 1.75 }}>
-              Nixol has partnered with David — a specialist in healthcare facility consulting — to bring focused advisory services to clinics, hospitals, and medical organizations. Together, we combine financial management expertise with deep sector knowledge to improve performance and patient-centred operations.
-            </p>
+      {/* Healthcare Partner */}
+      <section className="nx-health">
+        <div className="nx-health-inner">
+          <Reveal>
+            <div className="nx-health-head">
+              <span className="nx-badge">🏥 Healthcare Partnership</span>
+              <h2>Expanding Into Healthcare Consulting</h2>
+              <p>Nixol has partnered with David — a specialist in healthcare facility consulting — to bring focused advisory services to clinics, hospitals, and medical organizations. Together, we combine financial management expertise with deep sector knowledge to improve performance and patient-centred operations.</p>
+            </div>
           </Reveal>
-
-          <div style={{ maxWidth: '340px', margin: '0 auto' }}>
-            <TeamCard
-              name={HEALTHCARE_PARTNER.name}
-              role={HEALTHCARE_PARTNER.role}
-              img={HEALTHCARE_PARTNER.img}
-              initials={HEALTHCARE_PARTNER.initials}
-              phone={HEALTHCARE_PARTNER.phone}
-              note={HEALTHCARE_PARTNER.note}
-              delay={0}
-              highlight={true}
-            />
-          </div>
-
-          <Reveal style={{ textAlign: 'center', marginTop: '2rem' }}>
-            <Link to="/services#healthcare" style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: navy, textDecoration: 'none', borderBottom: `1px solid ${gold}`, paddingBottom: '2px', transition: 'color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.color = gold}
-              onMouseLeave={e => e.currentTarget.style.color = navy}>
-              View Healthcare Services →
-            </Link>
+          
+          <Reveal>
+            <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+              <Link to="/services#healthcare" className="nx-health-link">View Healthcare Services →</Link>
+            </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ── Our Approach (dark) ── */}
-      <section style={{ padding: mobile ? '2.5rem 1.25rem' : '5rem 1.75rem', background: navy }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: mobile ? '2rem' : '4rem', alignItems: 'start' }}>
+      {/* Our Approach */}
+      <section className="nx-approach">
+        <div className="nx-approach-grid">
           <Reveal>
-            <Badge text="Our Approach" dark />
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.7rem,3vw,2.4rem)', fontWeight: 600, color: white, lineHeight: 1.2, marginBottom: '1rem' }}>
-              A Partnership Mindset, Not a Vendor Relationship
-            </h2>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: '#B0BCCC', lineHeight: 1.8, marginBottom: '1.5rem' }}>
-              Nixol operates with a partnership mindset — working closely with clients to understand their goals, challenges, and opportunities. Every engagement is grounded in:
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div>
+              <span className="nx-badge">Our Approach</span>
+              <h2>A Partnership Mindset, Not a Vendor Relationship</h2>
+              <p className="sub">Nixol operates with a partnership mindset — working closely with clients to understand their goals, challenges, and opportunities. Every engagement is grounded in:</p>
               {APPROACH.map(({ label, desc }) => (
-                <div key={label} style={{ display: 'flex', gap: '0.85rem', alignItems: 'flex-start' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: gold, flexShrink: 0, marginTop: '7px' }} />
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#B0BCCC', margin: 0, lineHeight: 1.6 }}>
-                    <strong style={{ color: white, fontWeight: 600 }}>{label}</strong>{' '}{desc}
-                  </p>
+                <div key={label} className="nx-approach-item">
+                  <div className="nx-approach-dot" />
+                  <p><strong>{label}</strong> {desc}</p>
                 </div>
               ))}
             </div>
           </Reveal>
-
-          <Reveal delay={mobile ? 0 : 150}>
-            <div style={{ padding: mobile ? '1.75rem' : '2.5rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(201,168,76,0.15)', borderRadius: '20px' }}>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 600, color: white, marginBottom: '1.25rem' }}>
-                Why Organizations Choose Nixol
-              </h3>
+          <Reveal delay={150}>
+            <div className="nx-why-box">
+              <h3>Why Organizations Choose Nixol</h3>
               {WHY.map(w => (
-                <div key={w} style={{ display: 'flex', gap: '0.85rem', alignItems: 'flex-start', marginBottom: '0.85rem' }}>
-                  <span style={{ color: gold, fontSize: '0.85rem', flexShrink: 0, marginTop: '2px' }}>✓</span>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: '#B0BCCC', margin: 0, lineHeight: 1.6 }}>{w}</p>
+                <div key={w} className="nx-why-item">
+                  <span className="nx-why-check">✓</span>
+                  <p>{w}</p>
                 </div>
               ))}
-              <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(201,168,76,0.15)' }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.65rem', color: '#8B9BB4', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Registered EIN</p>
-                <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: gold, margin: 0, letterSpacing: '0.05em' }}>42-1824156</p>
+              <div className="nx-ein-block">
+                <p className="nx-ein-label">Registered EIN</p>
+                <p className="nx-ein-val">42-1824156</p>
               </div>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ── CTA (light) ── */}
-      <section style={{ padding: mobile ? '3rem 1.25rem' : '4rem 1.75rem', textAlign: 'center', background: '#f0f5ff', borderTop: '1px solid rgba(13,33,68,0.08)' }}>
+      {/* CTA */}
+      <section className="nx-cta-light">
         <Reveal>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.5rem,3vw,2.4rem)', fontWeight: 600, color: navy, marginBottom: '0.85rem' }}>
-            Ready to Work With Us?
-          </h2>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: t500, marginBottom: '2rem', lineHeight: 1.7, maxWidth: '480px', margin: '0 auto 2rem' }}>
-            Nixol is committed to helping organizations operate smarter, grow stronger, and achieve their strategic goals.
-          </p>
-          <Link to="/booking"
-            style={{ display: 'inline-block', padding: '0.9rem 2.25rem', background: navy, color: white, fontFamily: 'var(--font-body)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '7px', transition: 'all 0.25s' }}
-            onMouseEnter={e => { e.currentTarget.style.background = gold; e.currentTarget.style.color = navy; e.currentTarget.style.transform = 'translateY(-2px)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = navy; e.currentTarget.style.color = white; e.currentTarget.style.transform = 'none' }}>
-            Book a Consultation
-          </Link>
+          <h2>Ready to Work With Us?</h2>
+          <p>Nixol is committed to helping organizations operate smarter, grow stronger, and achieve their strategic goals.</p>
+          <Link to="/booking" className="btn-blue">Book a Consultation</Link>
         </Reveal>
       </section>
     </main>
