@@ -210,7 +210,7 @@ export default function Footer() {
             </p>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', marginBottom: '1.75rem' }}>
               <span style={{ fontSize: '0.82rem', flexShrink: 0, marginTop: '1px' }}>📞</span>
-              <span style={{ fontFamily: 'var(--font-body, sans-serif)', fontSize: '0.78rem', color: SLATE }}>+1(352)949-5124</span>
+              <span style={{ fontFamily: 'var(--font-body, sans-serif)', fontSize: '0.78rem', color: SLATE }}>+1 (352) 949-5124</span>
             </div>
 
             <Link
