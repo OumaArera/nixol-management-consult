@@ -44,10 +44,10 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
 // ── EmailJS setup ─────────────────────────────────────────────────────────────
-const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID'
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID'
-const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY'
-const COMPANY_EMAIL       = 'info@nixolmc.com'
+const EMAILJS_SERVICE_ID  = 'service_3repmab'
+const EMAILJS_TEMPLATE_ID = 'template_96roprd'
+const EMAILJS_PUBLIC_KEY  = 'pFfoPa4-58w4qUOSY'
+const COMPANY_EMAIL       = 'kwaku.duah@nixolmc.com'
 
 // ── Calendar helpers ──────────────────────────────────────────────────────────
 function getDaysInMonth(year, month) { return new Date(year, month + 1, 0).getDate() }

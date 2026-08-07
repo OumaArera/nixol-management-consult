@@ -59,6 +59,15 @@ const VALUES = [
   { icon: '🎯', label: 'Accountability',            desc: 'We take ownership of our work, decisions, and the outcomes we deliver.' },
 ]
 
+// Download icon SVG component — keeps JSX clean
+function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M8 1v9M4.5 6.5 8 10l3.5-3.5M2 13h12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export default function HomePage() {
   return (
     <main className="nx-main">
@@ -127,6 +136,18 @@ export default function HomePage() {
         .nx-blockquote p { font-size: 1.15rem; font-style: italic; color: #1e3a8a; margin: 0 0 0.5rem; line-height: 1.6; }
         .nx-blockquote cite { font-size: 0.7rem; color: #6b7280; font-style: normal; letter-spacing: 0.1em; text-transform: uppercase; }
 
+        /* ── Resource Download strip ── */
+        .nx-download-strip { background: #fff; padding: 2rem 1.75rem; border-top: 1px solid rgba(30,64,175,0.08); border-bottom: 1px solid rgba(30,64,175,0.08); }
+        .nx-download-inner { display: flex; align-items: center; gap: 2rem; max-width: 900px; margin: 0 auto; background: linear-gradient(135deg, #eff6ff 0%, #fff7ed 100%); border: 1px solid rgba(249,115,22,0.2); border-radius: 16px; padding: 1.75rem 2rem; box-shadow: 0 2px 16px rgba(30,58,138,0.06); }
+        .nx-download-file-icon { font-size: 2.4rem; flex-shrink: 0; }
+        .nx-download-text { flex: 1; }
+        .nx-download-eyebrow { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: #f97316; margin: 0 0 0.3rem; }
+        .nx-download-text h3 { font-size: 1rem; font-weight: 700; color: #1e3a8a; margin: 0 0 0.3rem; }
+        .nx-download-text p  { font-size: 0.78rem; color: #4b5563; line-height: 1.6; margin: 0; }
+        .btn-download { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #1e3a8a; color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; border-radius: 8px; white-space: nowrap; transition: all 0.25s; flex-shrink: 0; }
+        .btn-download:hover { background: #f97316; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(249,115,22,0.3); }
+        .btn-download svg { width: 14px; height: 14px; flex-shrink: 0; }
+
         /* ── Service cards ── */
         .nx-services { background: #fff; }
         .nx-services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.5rem; }
@@ -175,8 +196,10 @@ export default function HomePage() {
         .nx-cta-btns { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
 
         @media (max-width: 768px) {
-          .nx-stats-grid  { grid-template-columns: repeat(2,1fr); }
+          .nx-stats-grid   { grid-template-columns: repeat(2,1fr); }
           .nx-values-grid2 { grid-template-columns: 1fr; gap: 2rem; }
+          .nx-download-inner { flex-direction: column; text-align: center; }
+          .btn-download { width: 100%; justify-content: center; }
         }
       `}</style>
 
@@ -235,6 +258,29 @@ export default function HomePage() {
               <p>"To empower organizations with strategic financial intelligence, operational excellence, and tailored advisory solutions that drive long-term value creation."</p>
               <cite>— Our Mission</cite>
             </div>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ── RESOURCE DOWNLOAD ── */}
+      <section className="nx-download-strip">
+        <Reveal>
+          <div className="nx-download-inner">
+            <div className="nx-download-file-icon" aria-hidden="true">📄</div>
+            <div className="nx-download-text">
+              <p className="nx-download-eyebrow">Free Resource</p>
+              <h3>Adult Family Home Services Proposal</h3>
+              <p>A comprehensive overview of Nixol's advisory and financial management services tailored for adult family home providers — covering compliance, operations, and growth strategy.</p>
+            </div>
+            <a
+              href="/Adult Family Home ServicesProposal.pdf"
+              download="Adult Family Home Services Proposal - Nixol.pdf"
+              className="btn-download"
+              aria-label="Download Adult Family Home Services Proposal PDF"
+            >
+              <DownloadIcon />
+              Download PDF
+            </a>
           </div>
         </Reveal>
       </section>

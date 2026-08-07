@@ -8,6 +8,7 @@ import ContactPage    from './pages/ContactPage';
 import BookingPage    from './pages/BookingPage';
 import ClientsPage    from './pages/ClientsPage';
 import LetterheadPage from './pages/LetterheadPage';
+import InvoicePage    from './pages/InvoicePage';
 
 function AppRoutes() {
   const location = useLocation()
@@ -23,6 +24,7 @@ function AppRoutes() {
         <Route path="/about"      element={<AboutPage />} />
         <Route path="/contact"    element={<ContactPage />} />
         <Route path="/booking"    element={<BookingPage />} />
+        <Route path="/invoice"    element={<InvoicePage />} />
         {/* Hidden, auth-protected — no nav link */}
         <Route path="/letterhead" element={<LetterheadPage />} />
         {/* 404 */}

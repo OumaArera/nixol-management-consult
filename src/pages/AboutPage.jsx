@@ -35,12 +35,19 @@ function useMobile() {
 const TEAM = [
   { name: 'Kwaku Duah Junior',      role: 'Chief Executive Officer',   img: '/kwaku.png',    initials: 'KD' },
   { name: 'Elizabeth Henry Awudi',  role: 'Managing Partner',           img: '/elizabeth.png', initials: 'EA', suffix: 'PharmD' },
-  { name: 'Dr. Eric Nsiah Gyabaah', role: 'Managing Partner',           img: '/eric.png',     initials: 'EN' },
+  { name: 'Dr. Eric Nsiah Gyabaah', role: 'Managing Partner',           img: '/nsiah.png',     initials: 'EN' },
   { name: 'David Obuya',             role: 'Managing Partner',       img: '/DavidOmond.png',    initials: 'OO' },
   { name: 'Gabriel Acquah',         role: 'Director of Operations',     img: '/gabriel.png',  initials: 'GA' },
   { name: 'Owusu Osei',             role: 'Director of Projects',       img: '/owusu.png',    initials: 'OO' },
 ]
 
+
+const CEO_MESSAGE = [
+  "Welcome to Nixol Management & Consult — and thank you for taking the time to get to know us.",
+  "Every organization we meet arrives with a story: a season of growth that outpaced its systems, a set of numbers that no longer tells a clear story, or a bold idea waiting for the right structure to carry it. Our work begins with listening to that story before we ever recommend a solution.",
+  "We built Nixol on a simple conviction — that good advice is personal. It comes from people who take the time to understand your business, who speak plainly, and who stay long after the report is delivered. Whether you are a growing enterprise, an established institution, or a healthcare facility navigating change, you will find the same commitment here: clarity, honesty, and a genuine investment in your success.",
+  "Our doors are open, and our team is ready. Wherever you are on your journey, we would be glad to walk part of it with you.",
+]
 
 const PILLARS = [
   { icon: '🤝', label: 'Professional Stewardship', desc: 'We protect client interests with confidentiality, respect, and responsibility.' },
@@ -119,6 +126,37 @@ export default function AboutPage() {
         .nx-mv-card { padding: 1.5rem; background: #f3f4f6; border-left: 4px solid #f97316; border-radius: 0 12px 12px 0; margin-bottom: 1.25rem; }
         .nx-mv-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #f97316; margin-bottom: 0.6rem; }
         .nx-mv-text  { font-size: 1rem; font-style: italic; color: #1e3a8a; line-height: 1.6; margin: 0; }
+
+        /* ceo message */
+        .nx-ceo { position: relative; padding: ${mobile ? '2.75rem 1.25rem' : '5rem 1.75rem'}; background: linear-gradient(135deg,#fffbf5 0%,#fff7ed 55%,#eff6ff 100%); overflow: hidden; }
+        .nx-ceo::before { content: ''; position: absolute; top: -120px; right: -120px; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%); }
+        .nx-ceo-inner { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: ${mobile ? '1fr' : '320px 1fr'}; gap: ${mobile ? '2rem' : '3.5rem'}; align-items: ${mobile ? 'stretch' : 'start'}; }
+
+        .nx-ceo-portrait { background: #fff; border: 1px solid rgba(30,64,175,0.1); border-radius: 20px; overflow: hidden; box-shadow: 0 12px 36px rgba(30,58,138,0.1); ${mobile ? 'max-width: 300px; margin: 0 auto;' : 'position: sticky; top: 6rem;'} }
+        .nx-ceo-photo { position: relative; height: ${mobile ? '260px' : '320px'}; background: linear-gradient(135deg,#eff6ff,#dbeafe); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .nx-ceo-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+        .nx-ceo-photo-badge { position: absolute; bottom: 0; left: 0; right: 0; padding: 1.75rem 1.25rem 0.9rem; background: linear-gradient(to top, rgba(30,58,138,0.85), transparent); }
+        .nx-ceo-photo-badge span { font-size: 0.55rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #fdba74; }
+        .nx-ceo-portrait-body { padding: 1.25rem 1.5rem 1.5rem; text-align: center; }
+        .nx-ceo-portrait-body h3 { font-size: 1.15rem; font-weight: 700; color: #1e3a8a; margin-bottom: 0.25rem; }
+        .nx-ceo-portrait-body p { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #f97316; margin: 0; }
+
+        .nx-ceo-letter { position: relative; }
+        .nx-ceo-quote { position: absolute; top: ${mobile ? '-1rem' : '-2.25rem'}; right: 0; font-size: ${mobile ? '6rem' : '9rem'}; line-height: 1; font-weight: 800; color: rgba(249,115,22,0.13); pointer-events: none; user-select: none; }
+        .nx-ceo-letter-inner { position: relative; z-index: 1; }
+        .nx-ceo-letter h2 { font-size: clamp(1.7rem,3vw,2.4rem); font-weight: 800; color: #1e3a8a; line-height: 1.2; margin-bottom: 1.5rem; }
+        .nx-ceo-greeting { font-size: ${mobile ? '1.05rem' : '1.25rem'}; font-weight: 700; color: #1e40af; margin-bottom: 1rem; }
+        .nx-ceo-letter p.body { font-size: 0.9rem; color: #374151; line-height: 1.9; margin-bottom: 1.1rem; }
+        .nx-ceo-letter p.body:first-of-type { font-size: 1rem; color: #1f2937; }
+        .nx-ceo-sign { margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid rgba(30,64,175,0.12); }
+        .nx-ceo-sign-mark { font-family: 'Dancing Script','Segoe Script','Brush Script MT',cursive; font-weight: 700; font-size: ${mobile ? '2.4rem' : '3rem'}; color: #1e3a8a; line-height: 1.1; margin-bottom: 0.35rem; }
+        .nx-ceo-sign-name { font-size: 0.95rem; font-weight: 700; color: #1e3a8a; margin: 0; }
+        .nx-ceo-sign-role { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #f97316; margin: 0.2rem 0 0; }
+        .nx-ceo-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+        .btn-orange { display: inline-block; padding: 0.85rem 1.9rem; background: #f97316; color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; border-radius: 8px; transition: all 0.25s; }
+        .btn-orange:hover { background: #1e3a8a; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(30,58,138,0.2); }
+        .btn-ghost { display: inline-block; padding: 0.85rem 1.9rem; background: transparent; color: #1e3a8a; border: 1px solid rgba(30,64,175,0.25); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; border-radius: 8px; transition: all 0.25s; }
+        .btn-ghost:hover { border-color: #f97316; color: #f97316; transform: translateY(-2px); }
 
         /* values */
         .nx-corevals { padding: ${mobile ? '2.5rem 1.25rem' : '5rem 1.75rem'}; background: #f3f4f6; }
@@ -219,6 +257,54 @@ export default function AboutPage() {
               </Reveal>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* CEO's Message */}
+      <section className="nx-ceo">
+        <div className="nx-ceo-inner">
+          <Reveal>
+            <div className="nx-ceo-portrait">
+              <div className="nx-ceo-photo">
+                <img src="/kwaku.png" alt="Kwaku Duah Junior, Chief Executive Officer"
+                  onError={e => {
+                    e.target.style.display = 'none'
+                    const fb = document.createElement('div')
+                    fb.className = 'nx-team-initials'
+                    fb.textContent = 'KD'
+                    e.target.parentElement.appendChild(fb)
+                  }} />
+                <div className="nx-ceo-photo-badge"><span>Chief Executive Officer</span></div>
+              </div>
+              <div className="nx-ceo-portrait-body">
+                <h3>Kwaku Duah Junior</h3>
+                <p>Founder &amp; CEO</p>
+              </div>
+            </div>
+          </Reveal>
+
+          <Reveal delay={140}>
+            <div className="nx-ceo-letter">
+              <div className="nx-ceo-quote" aria-hidden="true">“</div>
+              <div className="nx-ceo-letter-inner">
+                <span className="nx-badge nx-badge--light">A Message From Our CEO</span>
+                <h2>You’re Welcome Here</h2>
+                <p className="nx-ceo-greeting">Dear Friend of Nixol,</p>
+                {CEO_MESSAGE.map(para => (
+                  <p key={para.slice(0, 32)} className="body">{para}</p>
+                ))}
+                <div className="nx-ceo-sign">
+                  <div className="nx-ceo-sign-mark">Kwaku Duah Jr.</div>
+                  <p className="nx-ceo-sign-name">Kwaku Duah Junior</p>
+                  <p className="nx-ceo-sign-role">Chief Executive Officer, Nixol Management &amp; Consult</p>
+                </div>
+                <div className="nx-ceo-actions">
+                  <Link to="/booking" className="btn-orange">Let’s Talk</Link>
+                  <Link to="/contact" className="btn-ghost">Contact the Team</Link>
+                </div>
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
